@@ -1,5 +1,5 @@
 -- =============================================================================
--- TokenLedger — Database Initialisation
+-- kostrack — Database Initialisation
 -- TimescaleDB schema + seed pricing data
 -- =============================================================================
 
