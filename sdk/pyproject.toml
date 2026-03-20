@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kostrack"
+version = "0.1.0"
+description = "AI API cost governance — track, attribute, and report LLM spend"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["llm", "cost", "observability", "finops", "anthropic", "openai", "gemini"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "psycopg2-binary>=2.9",
+    "anthropic>=0.40",
+    "openai>=1.0",
+    "google-generativeai>=0.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-mock>=3.14",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["kostrack"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
