@@ -1,0 +1,276 @@
+{
+  "uid": "kostrack-overview",
+  "title": "Kostrack — Overview",
+  "description": "AI API spend overview across all providers and projects",
+  "tags": ["kostrack"],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": { "from": "now-7d", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "panels": [
+
+    {
+      "id": 1,
+      "title": "Total Spend — Today",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT NOW() AS time, SUM(cost_usd) AS value FROM llm_calls WHERE time >= date_trunc('day', NOW())",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 2,
+      "title": "Total Spend — This Week",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 200 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT NOW() AS time, SUM(cost_usd) AS value FROM llm_calls WHERE time >= date_trunc('week', NOW())",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 3,
+      "title": "Total Spend — This Month",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 200 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT NOW() AS time, SUM(cost_usd) AS value FROM llm_calls WHERE time >= date_trunc('month', NOW())",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 4,
+      "title": "Total API Calls — Selected Period",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT $__timeFrom() AS time, COUNT(*) AS value FROM llm_calls WHERE $__timeFilter(time)",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 5,
+      "title": "Avg Cost Per Call — Selected Period",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["mean"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT $__timeFrom() AS time, AVG(cost_usd) AS value FROM llm_calls WHERE $__timeFilter(time)",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 6,
+      "title": "Cache Savings — Selected Period",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT $__timeFrom() AS time, SUM(cached_tokens * 0.000003) AS value FROM llm_calls WHERE $__timeFilter(time) AND cached_tokens > 0",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 10,
+      "title": "Spend Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 16, "h": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "gradientMode": "opacity" }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum", "mean"] } },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT time_bucket('1 hour', time) AS time, provider, SUM(cost_usd) AS cost FROM llm_calls WHERE $__timeFilter(time) GROUP BY 1, 2 ORDER BY 1",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 11,
+      "title": "Spend by Provider",
+      "type": "piechart",
+      "gridPos": { "x": 16, "y": 4, "w": 8, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "decimals": 4 } },
+      "options": { "pieType": "donut", "tooltip": { "mode": "single" }, "legend": { "displayMode": "table", "placement": "bottom", "values": ["value", "percent"] } },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT provider AS metric, SUM(cost_usd) AS value FROM llm_calls WHERE $__timeFilter(time) GROUP BY provider ORDER BY value DESC",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 20,
+      "title": "Spend by Model",
+      "type": "barchart",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "decimals": 4 },
+        "overrides": []
+      },
+      "options": { "orientation": "horizontal", "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT model, SUM(cost_usd) AS spend FROM llm_calls WHERE $__timeFilter(time) GROUP BY model ORDER BY spend DESC LIMIT 10",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 21,
+      "title": "Token Usage by Model",
+      "type": "barchart",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "orientation": "horizontal", "stacking": "normal", "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "datasource": { "uid": "kostrack-tsdb" },
+          "rawSql": "SELECT model, SUM(input_tokens) AS input, SUM(output_tokens) AS output, SUM(cached_tokens) AS cached FROM llm_calls WHERE $__timeFilter(time) GROUP BY model ORDER BY (input + output) DESC LIMIT 10",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 30,
+      "title": "Recent Calls",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 8 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "left" } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "cost_usd" }, "properties": [{ "id": "unit", "value": "currencyUSD" }, { "id": "decimals", "value": 6 }] },
+          { "matcher": { "id": "byName", "options": "latency_ms" }, "properties": [{ "id": "unit", "value": "ms" }] }
+        ]
+      },
+      "options": { "sortBy": [{ "displayName": "time", "desc": true }] },
+      "targets": [{
+        "datasource": { "uid": "kostrack-tsdb" },
+        "rawSql": "SELECT time, provider, model, input_tokens, output_tokens, cached_tokens, cost_usd, latency_ms, tags->>'project' AS project, tags->>'feature' AS feature FROM llm_calls WHERE $__timeFilter(time) ORDER BY time DESC LIMIT 100",
+        "format": "table"
+      }]
+    }
+
+  ],
+
+  "templating": {
+    "list": [
+      {
+        "name": "provider",
+        "label": "Provider",
+        "type": "query",
+        "datasource": { "uid": "kostrack-tsdb" },
+        "query": "SELECT DISTINCT provider FROM llm_calls ORDER BY provider",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 2
+      },
+      {
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "datasource": { "uid": "kostrack-tsdb" },
+        "query": "SELECT DISTINCT tags->>'project' FROM llm_calls WHERE tags->>'project' IS NOT NULL ORDER BY 1",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 2
+      }
+    ]
+  },
+
+  "schemaVersion": 38,
+  "version": 1
+}
