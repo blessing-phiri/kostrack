@@ -172,13 +172,13 @@ client.messages.create(
 
 ## Architecture
 
-| Layer | Technology |
-|-------|-----------|
-| SDK | Python 3.11+, provider SDKs |
+| Layer      | Technology                          |
+| ---------- | ----------------------------------- |
+| SDK        | Python 3.11+, provider SDKs         |
 | Write path | Async batch writer, SQLite fallback |
-| Database | TimescaleDB (Postgres extension) |
-| Dashboards | Grafana — pre-provisioned |
-| Deployment | Docker Compose |
+| Database   | TimescaleDB (Postgres extension)    |
+| Dashboards | Grafana — pre-provisioned           |
+| Deployment | Docker Compose                      |
 
 **Resilience:** If TimescaleDB is unreachable, records buffer to `~/.kostrack/buffer.db` and flush automatically when connectivity returns. Write overhead is under 5ms — never blocks your LLM calls.
 
@@ -186,24 +186,24 @@ client.messages.create(
 
 ## Supported providers
 
-| Provider | Models | Special tokens |
-|----------|--------|----------------|
-| Anthropic | claude-sonnet-4-6, claude-opus-4-6, claude-haiku-4-5 + batch | cache_write, cache_read, thinking |
-| OpenAI | gpt-4o, gpt-4o-mini, o1, o3-mini + batch | cached_prompt, reasoning_tokens |
-| Gemini | gemini-2.0-flash, gemini-2.0-flash-lite, gemini-1.5-pro/flash | context_cache, thoughts_tokens |
+| Provider  | Models                                                        | Special tokens                    |
+| --------- | ------------------------------------------------------------- | --------------------------------- |
+| Anthropic | claude-sonnet-4-6, claude-opus-4-6, claude-haiku-4-5 + batch  | cache_write, cache_read, thinking |
+| OpenAI    | gpt-4o, gpt-4o-mini, o1, o3-mini + batch                      | cached_prompt, reasoning_tokens   |
+| Gemini    | gemini-2.0-flash, gemini-2.0-flash-lite, gemini-1.5-pro/flash | context_cache, thoughts_tokens    |
 
 ---
 
 ## Environment variables
 
-| Variable | Description |
-|----------|-------------|
-| `KOSTRACK_DSN` | PostgreSQL DSN — alternative to passing `dsn=` to `configure()` |
-| `ANTHROPIC_API_KEY` | Anthropic API key |
-| `OPENAI_API_KEY` | OpenAI API key |
-| `GEMINI_API_KEY` | Gemini API key |
-| `TSDB_PASSWORD` | TimescaleDB password (Docker Compose) |
-| `GRAFANA_PASSWORD` | Grafana admin password |
+| Variable            | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| `KOSTRACK_DSN`      | PostgreSQL DSN — alternative to passing `dsn=` to `configure()` |
+| `ANTHROPIC_API_KEY` | Anthropic API key                                               |
+| `OPENAI_API_KEY`    | OpenAI API key                                                  |
+| `GEMINI_API_KEY`    | Gemini API key                                                  |
+| `TSDB_PASSWORD`     | TimescaleDB password (Docker Compose)                           |
+| `GRAFANA_PASSWORD`  | Grafana admin password                                          |
 
 ---
 
@@ -251,4 +251,4 @@ kostrack/
 
 Apache 2.0 — see [LICENSE](LICENSE).
 
-*Built by [Blessing Phiri](https://github.com/bphiri) · Init Data Solutions · Harare, Zimbabwe.*
+_Built by [Blessing Phiri](https://github.com/bphiri) · Harare, Zimbabwe._
