@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">SDK Reference</div>
+    <h1 class="doc-h1">OpenAI Provider</h1>
+    <p class="doc-lead">Drop-in replacement for openai.OpenAI. Wraps chat.completions.create() with automatic cost capture.</p>
+    
+<h2 class="doc-h2">Usage</h2>
+<pre><code><span class="cc"># Before</span>
+<span class="ck">from</span> openai <span class="ck">import</span> OpenAI
+
+<span class="cc"># After</span>
+<span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> OpenAI
+
+client = <span class="cf">OpenAI</span>(
+    tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>, <span class="cs">"feature"</span>: <span class="cs">"gl-classification"</span>}
+)
+
+response = client.chat.completions.<span class="cf">create</span>(
+    model=<span class="cs">"gpt-4o"</span>,
+    max_tokens=<span class="cf">512</span>,
+    messages=[{<span class="cs">"role"</span>: <span class="cs">"user"</span>, <span class="cs">"content"</span>: <span class="cs">"Classify this transaction..."</span>}],
+)</code></pre>
+
+<h2 class="doc-h2">Streaming</h2>
+<p>Kostrack automatically injects <code>stream_options={"include_usage": True}</code> into streaming requests so token counts are captured from the final chunk:</p>
+<pre><code><span class="ck">for</span> chunk <span class="ck">in</span> client.chat.completions.<span class="cf">create</span>(
+    model=<span class="cs">"gpt-4o"</span>, stream=<span class="ck">True</span>, messages=[...]
+):
+    <span class="cf">print</span>(chunk.choices[<span class="cf">0</span>].delta.content, end=<span class="cs">""</span>)</code></pre>
+
+<h2 class="doc-h2">Supported models</h2>
+<table>
+  <tr><th>Model</th><th>Input / 1M</th><th>Output / 1M</th><th>Cached input / 1M</th></tr>
+  <tr><td>gpt-4o</td><td>$2.50</td><td>$10.00</td><td>$1.25</td></tr>
+  <tr><td>gpt-4o-mini</td><td>$0.15</td><td>$0.60</td><td>$0.075</td></tr>
+  <tr><td>o1</td><td>$15.00</td><td>$60.00</td><td>$7.50</td></tr>
+  <tr><td>o3-mini</td><td>$1.10</td><td>$4.40</td><td>$0.55</td></tr>
+</table>
+
+<h2 class="doc-h2">Token breakdown</h2>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td><code>input_tokens</code></td><td>prompt_tokens from the response</td></tr>
+  <tr><td><code>output_tokens</code></td><td>completion_tokens from the response</td></tr>
+  <tr><td><code>cached_tokens</code></td><td>Cached prompt tokens (50% discount applied)</td></tr>
+  <tr><td><code>token_breakdown.reasoning_tokens</code></td><td>Reasoning tokens for o1/o3 models</td></tr>
+</table>
+
+    <div class="prev-next"><a href="/docs/anthropic.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Anthropic</div></a><a href="/docs/gemini.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Gemini</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('openai');</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grafana Overview — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Dashboard</div>
+    <h1 class="doc-h1">Grafana Overview</h1>
+    <p class="doc-lead">Kostrack ships a pre-provisioned Grafana dashboard. docker compose up -d and it's ready — no manual datasource setup required.</p>
+    
+<h2 class="doc-h2">Accessing Grafana</h2>
+<p>Open <a href="http://localhost:3000" target="_blank"><strong>http://localhost:3000</strong></a> and log in with <code>admin</code> / your <code>GRAFANA_PASSWORD</code>. The <strong>Kostrack — Overview</strong> dashboard loads as the home page.</p>
+
+<h2 class="doc-h2">Dashboard panels</h2>
+<table>
+  <tr><th>Panel</th><th>What it shows</th></tr>
+  <tr><td>Total Spend — Today</td><td>Running USD spend since midnight</td></tr>
+  <tr><td>Total Spend — This Week</td><td>Rolling 7-day spend</td></tr>
+  <tr><td>Total Spend — This Month</td><td>Month-to-date spend</td></tr>
+  <tr><td>Total API Calls</td><td>Call count for the selected date range</td></tr>
+  <tr><td>Avg Cost Per Call</td><td>Mean cost per call in the selected range</td></tr>
+  <tr><td>Cache Savings</td><td>Estimated savings from prompt cache hits</td></tr>
+  <tr><td>Spend Over Time</td><td>Hourly spend trend, split by provider</td></tr>
+  <tr><td>Spend by Provider</td><td>Donut chart — Anthropic vs OpenAI vs Gemini share</td></tr>
+  <tr><td>Spend by Model</td><td>Horizontal bar — which models cost the most</td></tr>
+  <tr><td>Token Usage by Model</td><td>Input / output / cached token breakdown per model</td></tr>
+  <tr><td>Recent Calls</td><td>Live table of last 100 calls with all fields</td></tr>
+</table>
+
+<h2 class="doc-h2">Template variables</h2>
+<p>Use the <strong>Provider</strong> and <strong>Project</strong> dropdowns at the top of the dashboard to filter all panels simultaneously.</p>
+
+<h2 class="doc-h2">Time range</h2>
+<p>Use the Grafana time picker (top right) to switch between last 7 days (default), today, this month, or any custom range.</p>
+
+<h2 class="doc-h2">Alerting</h2>
+<p>Grafana's built-in alerting can fire to Slack, email, or PagerDuty when spend crosses a threshold. To set up a budget alert:</p>
+<ol style="margin:16px 0 16px 20px;line-height:2;">
+  <li>Go to <strong>Alerting → Alert rules → New alert rule</strong></li>
+  <li>Query: <code>SELECT SUM(cost_usd) FROM llm_calls WHERE tags->>'project' = 'openmanagr' AND time > now() - interval '1 month'</code></li>
+  <li>Set your threshold (e.g. $50)</li>
+  <li>Add a notification channel (Slack webhook, email, etc.)</li>
+</ol>
+
+    <div class="prev-next"><a href="/docs/tags.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Attribution Tags</div></a><a href="/docs/queries.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Useful Queries</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('grafana');</script>
+</body>
+</html>

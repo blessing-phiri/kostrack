@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>configure() — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Configuration</div>
+    <h1 class="doc-h1">configure()</h1>
+    <p class="doc-lead">The entry point for all of Kostrack. Call once at application startup before making any LLM API calls.</p>
+    
+<h2 class="doc-h2">Signature</h2>
+<pre><code><span class="ck">import</span> <span class="ca">kostrack</span>
+
+<span class="ca">kostrack</span>.<span class="cf">configure</span>(
+    dsn: str | None = None,
+    service_id: str = "default",
+    flush_interval: float = 5.0,
+    max_batch_size: int = 100,
+    sqlite_path: Path | None = None,
+    fail_open: bool = True,
+    log_level: str = "WARNING",
+)</code></pre>
+
+<h2 class="doc-h2">Parameters</h2>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>dsn</code></td><td>str</td><td>None</td><td>PostgreSQL DSN. Falls back to <code>KOSTRACK_DSN</code> env var if not passed.</td></tr>
+  <tr><td><code>service_id</code></td><td>str</td><td>"default"</td><td>Identifies this service in <code>writer_health</code> and Grafana queries. Use your app name.</td></tr>
+  <tr><td><code>flush_interval</code></td><td>float</td><td>5.0</td><td>Seconds between write batches. Lower = more frequent writes, higher DB load.</td></tr>
+  <tr><td><code>max_batch_size</code></td><td>int</td><td>100</td><td>Maximum rows per TimescaleDB insert.</td></tr>
+  <tr><td><code>sqlite_path</code></td><td>Path</td><td>None</td><td>Override default SQLite buffer location (<code>~/.kostrack/buffer.db</code>).</td></tr>
+  <tr><td><code>fail_open</code></td><td>bool</td><td>True</td><td>If True, all write errors are swallowed silently. If False, raises after SQLite also fails.</td></tr>
+  <tr><td><code>log_level</code></td><td>str</td><td>"WARNING"</td><td>Log level for all <code>kostrack.*</code> loggers. Set to <code>"DEBUG"</code> during development.</td></tr>
+</table>
+
+<h2 class="doc-h2">health()</h2>
+<p>Returns the current state of the async writer — useful for monitoring endpoints:</p>
+<pre><code>kostrack.health()
+<span class="cc"># {
+#   "status": "ok",
+#   "timescale_available": True,
+#   "sqlite_backlog": 0,
+#   "queue_depth": 0,
+#   "written_timescale": 1247,
+#   "written_sqlite": 0,
+#   "failed": 0,
+#   "last_flush": "2026-03-20T08:00:01Z"
+# }</span></code></pre>
+
+<h2 class="doc-h2">shutdown()</h2>
+<p>Flushes the remaining in-memory queue before the process exits. Call in your shutdown handler:</p>
+<pre><code>kostrack.shutdown(timeout=10.0)</code></pre>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Important</div>
+  <p>If you don't call <code>shutdown()</code>, any records still in the in-memory queue at process exit will be lost. Records already flushed to SQLite are safe.</p>
+</div>
+
+    <div class="prev-next"><a href="/docs/quickstart.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Quick Start</div></a><a href="/docs/environment.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Environment Vars</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('configure');</script>
+</body>
+</html>

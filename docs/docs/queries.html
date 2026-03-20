@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Useful Queries — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Dashboard</div>
+    <h1 class="doc-h1">Useful Queries</h1>
+    <p class="doc-lead">Reference SQL queries for common cost analysis tasks. Run these directly in TimescaleDB or use them as Grafana panel queries.</p>
+    
+<h2 class="doc-h2">Spend analysis</h2>
+<pre><code><span class="cc">-- Spend today by project</span>
+SELECT tags->><span class="cs">'project'</span> AS project, SUM(cost_usd) AS total
+FROM llm_calls
+WHERE time >= date_trunc(<span class="cs">'day'</span>, NOW())
+GROUP BY 1 ORDER BY 2 DESC;
+
+<span class="cc">-- Spend this month by feature</span>
+SELECT tags->><span class="cs">'feature'</span> AS feature, SUM(cost_usd) AS total, COUNT(*) AS calls
+FROM llm_calls
+WHERE time >= date_trunc(<span class="cs">'month'</span>, NOW())
+GROUP BY 1 ORDER BY 2 DESC;
+
+<span class="cc">-- Daily spend trend for the last 30 days</span>
+SELECT time_bucket(<span class="cs">'1 day'</span>, time) AS day, SUM(cost_usd)
+FROM llm_calls
+WHERE time > NOW() - INTERVAL <span class="cs">'30 days'</span>
+GROUP BY 1 ORDER BY 1;</code></pre>
+
+<h2 class="doc-h2">Model and token analysis</h2>
+<pre><code><span class="cc">-- Cost and tokens per model</span>
+SELECT model, provider,
+  COUNT(*) AS calls,
+  SUM(input_tokens) AS total_input,
+  SUM(output_tokens) AS total_output,
+  SUM(cached_tokens) AS total_cached,
+  SUM(cost_usd) AS total_cost,
+  AVG(cost_usd) AS avg_cost_per_call
+FROM llm_calls
+WHERE time > NOW() - INTERVAL <span class="cs">'7 days'</span>
+GROUP BY model, provider ORDER BY total_cost DESC;
+
+<span class="cc">-- Cache efficiency ratio</span>
+SELECT model,
+  SUM(cached_tokens)::float / NULLIF(SUM(input_tokens), 0) AS cache_hit_ratio,
+  SUM(cached_tokens * 0.000003) AS estimated_savings_usd
+FROM llm_calls
+WHERE time > NOW() - INTERVAL <span class="cs">'7 days'</span>
+GROUP BY model ORDER BY cache_hit_ratio DESC;</code></pre>
+
+<h2 class="doc-h2">Agentic workflow costs</h2>
+<pre><code><span class="cc">-- Most expensive workflow runs</span>
+SELECT * FROM trace_costs
+ORDER BY total_cost_usd DESC LIMIT 20;
+
+<span class="cc">-- Average cost per workflow type (feature)</span>
+SELECT feature, COUNT(*) AS runs,
+  AVG(total_cost_usd) AS avg_cost,
+  MAX(total_cost_usd) AS max_cost
+FROM trace_costs
+WHERE feature IS NOT NULL
+GROUP BY 1 ORDER BY avg_cost DESC;
+
+<span class="cc">-- All calls in a specific trace</span>
+SELECT time, provider, model, cost_usd,
+  tags->><span class="cs">'span_name'</span> AS span, latency_ms
+FROM llm_calls
+WHERE trace_id = <span class="cs">'paste-your-trace-uuid-here'</span>
+ORDER BY time;</code></pre>
+
+<h2 class="doc-h2">Budget monitoring</h2>
+<pre><code><span class="cc">-- Check spend vs budget for all projects this month</span>
+SELECT
+  b.tag_value AS project,
+  b.limit_usd AS budget,
+  COALESCE(SUM(c.cost_usd), 0) AS spent,
+  ROUND(COALESCE(SUM(c.cost_usd), 0) / b.limit_usd * 100, 1) AS pct_used
+FROM budgets b
+LEFT JOIN llm_calls c
+  ON c.tags->><span class="cs">'project'</span> = b.tag_value
+  AND c.time >= date_trunc(<span class="cs">'month'</span>, NOW())
+WHERE b.tag_key = <span class="cs">'project'</span> AND b.period = <span class="cs">'monthly'</span>
+GROUP BY b.tag_value, b.limit_usd
+ORDER BY pct_used DESC;</code></pre>
+
+<h2 class="doc-h2">Writer health</h2>
+<pre><code><span class="cc">-- Check writer status and SQLite backlog</span>
+SELECT service_id, timescale_ok, sqlite_backlog,
+  written_timescale, written_sqlite, failed, last_flush
+FROM writer_health;</code></pre>
+
+    <div class="prev-next"><a href="/docs/grafana.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Grafana Overview</div></a><a href="/docs/fastapi.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">FastAPI</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('queries');</script>
+</body>
+</html>

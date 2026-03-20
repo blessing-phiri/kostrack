@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kostrack — AI API Cost Governance</title>
+<meta name="description" content="Track, attribute, and govern LLM API spend across Anthropic, OpenAI, and Gemini — with full agentic workflow cost rollup.">
+<meta property="og:title" content="Kostrack — AI API Cost Governance">
+<meta property="og:description" content="One import change. Full cost visibility. Built for teams shipping AI in production.">
+<meta property="og:url" content="https://kostrack.netlify.app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#0D1B2E; --ink-mid:#1A2B4A; --ink-soft:#243660;
+    --amber:#F5A623; --amber-deep:#E8891A; --amber-pale:#FDF3E0;
+    --slate:#6B7FA3; --slate-light:#A8B8D0; --fog:#EEF2F8; --white:#FFFFFF;
+    --mono:'DM Mono','Fira Mono',monospace;
+    --sans:'DM Sans',system-ui,sans-serif;
+    --serif:'DM Serif Display',Georgia,serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--fog);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+  /* ── Nav ── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(238,242,248,0.93);backdrop-filter:blur(12px);border-bottom:1px solid #DDE3EE;padding:0 40px;height:58px;display:flex;align-items:center;justify-content:space-between;}
+  .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+  .nav-wordmark{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--ink);letter-spacing:-0.3px;}
+  .nav-wordmark span{color:var(--amber);}
+  .nav-links{display:flex;align-items:center;gap:28px;list-style:none;}
+  .nav-links a{font-family:var(--mono);font-size:12px;color:var(--slate);text-decoration:none;letter-spacing:0.3px;transition:color 0.15s;}
+  .nav-links a:hover{color:var(--ink);}
+  .nav-cta{padding:7px 16px;background:var(--amber);color:var(--ink)!important;border-radius:4px;font-weight:500!important;transition:background 0.15s!important;}
+  .nav-cta:hover{background:var(--amber-deep)!important;}
+
+  section{padding:100px 40px;}
+  .container{max-width:1100px;margin:0 auto;}
+
+  /* ── Hero ── */
+  .hero{background:var(--ink);padding-top:148px;padding-bottom:96px;position:relative;overflow:hidden;}
+  .hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(245,166,35,0.04)1px,transparent 1px),linear-gradient(90deg,rgba(245,166,35,0.04)1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+  .hero::after{content:'';position:absolute;top:-140px;right:-140px;width:560px;height:560px;background:radial-gradient(circle,rgba(245,166,35,0.07)0%,transparent 70%);pointer-events:none;}
+  .hero-inner{position:relative;z-index:1;}
+
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.2);border-radius:100px;font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:1px;margin-bottom:28px;animation:fadeUp 0.5s ease both;}
+  .badge-dot{width:6px;height:6px;background:var(--amber);border-radius:50%;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
+
+  .hero h1{font-family:var(--serif);font-size:clamp(40px,6vw,72px);font-weight:400;color:var(--white);line-height:1.04;letter-spacing:-2px;margin-bottom:24px;animation:fadeUp 0.5s 0.08s ease both;}
+  .hero h1 em{font-style:normal;color:var(--amber);}
+  .hero-sub{font-size:18px;color:var(--slate-light);max-width:560px;line-height:1.65;margin-bottom:40px;animation:fadeUp 0.5s 0.16s ease both;}
+
+  .hero-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;animation:fadeUp 0.5s 0.24s ease both;}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:var(--amber);color:var(--ink);border-radius:5px;font-family:var(--mono);font-size:14px;font-weight:500;text-decoration:none;transition:background 0.15s,transform 0.12s;}
+  .btn-primary:hover{background:var(--amber-deep);transform:translateY(-1px);}
+  .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:rgba(255,255,255,0.06);color:#C8D8F0;border:1px solid rgba(255,255,255,0.1);border-radius:5px;font-family:var(--mono);font-size:14px;text-decoration:none;transition:background 0.15s;}
+  .btn-ghost:hover{background:rgba(255,255,255,0.1);}
+
+  .install-strip{margin-top:52px;display:inline-flex;align-items:center;background:#060F1C;border:1px solid var(--ink-soft);border-radius:8px;overflow:hidden;animation:fadeUp 0.5s 0.32s ease both;}
+  .install-label{padding:12px 16px;background:var(--ink-mid);font-family:var(--mono);font-size:11px;color:var(--slate);letter-spacing:1px;border-right:1px solid var(--ink-soft);white-space:nowrap;}
+  .install-cmd{padding:12px 20px;font-family:var(--mono);font-size:14px;color:var(--amber);letter-spacing:0.3px;}
+  .install-copy{padding:12px 16px;background:var(--ink-mid);border-left:1px solid var(--ink-soft);cursor:pointer;color:var(--slate);font-size:14px;transition:color 0.15s;user-select:none;}
+  .install-copy:hover{color:var(--amber);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ── Stats bar ── */
+  .stats-bar{background:var(--white);border-bottom:1px solid #DDE3EE;padding:0 40px;}
+  .stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+  .stat-item{padding:26px 32px;border-right:1px solid #DDE3EE;}
+  .stat-item:first-child{padding-left:0;}
+  .stat-item:last-child{border-right:none;}
+  .stat-n{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--ink);line-height:1;margin-bottom:5px;}
+  .stat-n span{color:var(--amber);}
+  .stat-d{font-size:13px;color:var(--slate);}
+
+  /* ── How it works ── */
+  .how{background:var(--fog);}
+  .eyebrow{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:3px;color:var(--amber);text-transform:uppercase;margin-bottom:12px;}
+  .section-h2{font-family:var(--serif);font-size:clamp(32px,4vw,48px);font-weight:400;color:var(--ink);line-height:1.1;letter-spacing:-1px;margin-bottom:14px;}
+  .section-sub{font-size:16px;color:var(--slate);max-width:520px;line-height:1.65;margin-bottom:52px;}
+
+  .how-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;}
+  .steps{display:flex;flex-direction:column;}
+  .step{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid #DDE3EE;}
+  .step:last-child{border-bottom:none;}
+  .step-num{font-family:var(--mono);font-size:11px;color:var(--slate-light);padding-top:3px;min-width:24px;letter-spacing:1px;}
+  .step-title{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;letter-spacing:-0.2px;}
+  .step-desc{font-size:14px;color:var(--slate);line-height:1.55;}
+  .step-desc code{font-family:var(--mono);font-size:12px;background:var(--fog);padding:2px 6px;border-radius:3px;}
+
+  .code-window{background:var(--ink);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(13,27,46,0.2);}
+  .code-titlebar{padding:12px 20px;background:var(--ink-mid);display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--ink-soft);}
+  .tl{width:10px;height:10px;border-radius:50%;}
+  .code-filename{font-family:var(--mono);font-size:11px;color:var(--slate);margin-left:8px;letter-spacing:0.3px;}
+  .code-body{padding:22px 26px;font-family:var(--mono);font-size:13px;line-height:1.75;color:#C8D8F0;}
+  .ck{color:#7BA7D4;}.cs{color:#98C379;}.cc{color:#3D5070;}.ca{color:#F5A623;}.cf{color:#E8A87C;}
+
+  /* ── Features ── */
+  .features{background:var(--white);}
+  .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#DDE3EE;border:1px solid #DDE3EE;border-radius:10px;overflow:hidden;}
+  .feat{background:var(--white);padding:32px 28px;transition:background 0.15s;}
+  .feat:hover{background:#FAFBFD;}
+  .feat-icon{width:38px;height:38px;background:var(--amber-pale);border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;font-size:18px;}
+  .feat-title{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:7px;letter-spacing:-0.2px;}
+  .feat-desc{font-size:13.5px;color:var(--slate);line-height:1.6;}
+  .feat-tag{display:inline-block;margin-top:14px;font-family:var(--mono);font-size:10px;color:var(--amber-deep);background:var(--amber-pale);border:1px solid #F5C87A;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;}
+
+  /* ── Providers ── */
+  .providers{background:var(--fog);}
+  .provider-strip{display:flex;gap:16px;flex-wrap:wrap;}
+  .provider-card{flex:1;min-width:200px;background:var(--white);border:1px solid #DDE3EE;border-radius:8px;padding:26px;transition:box-shadow 0.15s,transform 0.15s;}
+  .provider-card:hover{box-shadow:0 8px 32px rgba(13,27,46,0.07);transform:translateY(-2px);}
+  .provider-name{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--ink);margin-bottom:8px;}
+  .provider-models{font-size:12.5px;color:var(--slate);line-height:1.65;margin-bottom:14px;}
+  .provider-note{font-family:var(--mono);font-size:10px;color:var(--amber-deep);background:var(--amber-pale);padding:4px 10px;border-radius:4px;display:inline-block;}
+
+  /* ── CTA ── */
+  .cta-section{background:var(--ink);text-align:center;position:relative;overflow:hidden;}
+  .cta-section::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(245,166,35,0.03)1px,transparent 1px),linear-gradient(90deg,rgba(245,166,35,0.03)1px,transparent 1px);background-size:48px 48px;}
+  .cta-inner{position:relative;z-index:1;}
+  .cta-section h2{font-family:var(--serif);font-size:clamp(32px,4vw,52px);color:var(--white);font-weight:400;letter-spacing:-1.5px;margin-bottom:14px;}
+  .cta-section p{font-size:17px;color:var(--slate-light);margin-bottom:36px;max-width:400px;margin-left:auto;margin-right:auto;}
+  .cta-actions{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;}
+
+  /* ── Footer ── */
+  footer{background:#060F1C;padding:36px 40px;border-top:1px solid var(--ink-mid);}
+  .footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+  .footer-logo{font-family:var(--mono);font-size:14px;font-weight:500;color:rgba(255,255,255,0.35);}
+  .footer-logo span{color:var(--amber);}
+  .footer-links{display:flex;gap:24px;}
+  .footer-links a{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.2);text-decoration:none;letter-spacing:0.5px;transition:color 0.15s;}
+  .footer-links a:hover{color:rgba(255,255,255,0.5);}
+
+  @media(max-width:768px){
+    nav{padding:0 20px;}
+    section{padding:72px 20px;}
+    .stats-bar{padding:0 20px;}
+    .stats-inner{grid-template-columns:1fr 1fr;}
+    .how-grid,.features-grid{grid-template-columns:1fr;}
+    .nav-links li:not(:last-child){display:none;}
+    footer{padding:28px 20px;}
+    .footer-inner{flex-direction:column;gap:12px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <!-- Kostrack icon mark — inline SVG -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:30px;height:30px;flex-shrink:0;">
+      <defs>
+        <linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient>
+        <linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient>
+        <linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="14" fill="url(#ibg)"/>
+      <rect x="8"  y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/>
+      <rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/>
+      <rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/>
+      <rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/>
+      <polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="48.5" cy="17" r="4" fill="#F5A623"/>
+      <line x1="6" y1="56" x2="58" y2="56" stroke="#F5A623" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    </svg>
+    <span class="nav-wordmark">kos<span>track</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/docs/">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero" style="padding-left:40px;padding-right:40px;">
+  <div class="container hero-inner">
+    <div class="hero-badge"><span class="badge-dot"></span>v0.1.0 · Open Source · Apache 2.0</div>
+    <h1>Know what your<br>AI <em>actually</em> costs.</h1>
+    <p class="hero-sub">Instrument once. Attribute every LLM API call to a project, feature, or workflow — with full agentic cost rollup across Anthropic, OpenAI, and Gemini.</p>
+    <div class="hero-actions">
+      <a href="/docs/quickstart.html" class="btn-primary">Get started →</a>
+      <a href="https://github.com/bphiri/kostrack" target="_blank" class="btn-ghost">View on GitHub</a>
+    </div>
+    <div class="install-strip">
+      <span class="install-label">INSTALL</span>
+      <span class="install-cmd">pip install kostrack</span>
+      <span class="install-copy" id="copy-btn" title="Copy">⎘</span>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item"><div class="stat-n">3<span> providers</span></div><div class="stat-d">Anthropic · OpenAI · Gemini</div></div>
+    <div class="stat-item"><div class="stat-n">1<span> import</span></div><div class="stat-d">Zero API changes required</div></div>
+    <div class="stat-item"><div class="stat-n">&lt;5<span>ms</span></div><div class="stat-d">Async write overhead per call</div></div>
+    <div class="stat-item"><div class="stat-n">41<span> tests</span></div><div class="stat-d">Full coverage, 0 failures</div></div>
+  </div>
+</div>
+
+<!-- How it works -->
+<section class="how" id="how">
+  <div class="container">
+    <div class="eyebrow">How it works</div>
+    <h2 class="section-h2">From one import<br>to live dashboards.</h2>
+    <p class="section-sub">No proxy servers. No SDK rewrites. Kostrack wraps your existing clients and writes cost data asynchronously — never blocking your LLM calls.</p>
+    <div class="how-grid">
+      <div class="steps">
+        <div class="step"><div class="step-num">01</div><div><div class="step-title">Start the stack</div><div class="step-desc">Run <code>docker compose up -d</code>. TimescaleDB and a pre-wired Grafana dashboard are ready in under a minute.</div></div></div>
+        <div class="step"><div class="step-num">02</div><div><div class="step-title">Configure once</div><div class="step-desc">Call <code>kostrack.configure(dsn=...)</code> at app startup with your TimescaleDB connection string. That's it.</div></div></div>
+        <div class="step"><div class="step-num">03</div><div><div class="step-title">Swap one import</div><div class="step-desc">Replace <code>from anthropic import Anthropic</code> with <code>from kostrack import Anthropic</code>. Identical API.</div></div></div>
+        <div class="step"><div class="step-num">04</div><div><div class="step-title">Tag and trace</div><div class="step-desc">Pass a <code>tags</code> dict to attribute costs. Wrap agentic workflows with <code>kostrack.trace()</code> for rollup per run.</div></div></div>
+      </div>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="tl" style="background:#FF5F57"></div>
+          <div class="tl" style="background:#FFBD2E"></div>
+          <div class="tl" style="background:#28C840"></div>
+          <span class="code-filename">app.py</span>
+        </div>
+        <div class="code-body"><span class="ck">import</span> <span class="ca">kostrack</span>
+
+<span class="ca">kostrack</span>.<span class="cf">configure</span>(
+  dsn=<span class="cs">"postgresql://kostrack:pw@localhost/kostrack"</span>,
+  service_id=<span class="cs">"openmanagr"</span>,
+)
+
+<span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> Anthropic
+
+client = <span class="cf">Anthropic</span>(tags={
+  <span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>,
+  <span class="cs">"feature"</span>: <span class="cs">"invoice-extraction"</span>,
+})
+
+<span class="cc"># Agentic trace — cost rolls up per run</span>
+<span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">trace</span>(
+  tags={<span class="cs">"feature"</span>: <span class="cs">"month-end-close"</span>}
+) <span class="ck">as</span> t:
+  result = agent.<span class="cf">run</span>(task)
+
+<span class="cf">print</span>(<span class="cs">f"Cost: ${t.total_cost_usd:.6f}"</span>)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="eyebrow">Features</div>
+    <h2 class="section-h2">Built for production<br>AI systems.</h2>
+    <p class="section-sub" style="margin-bottom:40px;">Everything needed for real cost governance — not just a dashboard on top of your billing page.</p>
+    <div class="features-grid">
+      <div class="feat"><div class="feat-icon">⚡</div><div class="feat-title">Async write path</div><div class="feat-desc">Batch writer with in-memory queue. DB writes never block LLM calls. SQLite fallback if TimescaleDB is unreachable.</div><span class="feat-tag">&lt;5ms overhead</span></div>
+      <div class="feat"><div class="feat-icon">🔗</div><div class="feat-title">Agentic trace rollup</div><div class="feat-desc">LangGraph-native. All child LLM calls in a workflow share a trace ID. Query total cost per run, not just per call.</div><span class="feat-tag">LangGraph ready</span></div>
+      <div class="feat"><div class="feat-icon">🏷</div><div class="feat-title">Extensible attribution</div><div class="feat-desc">Tag every call with project, feature, user, team, environment — any keys needed. GIN-indexed for fast queries.</div><span class="feat-tag">Arbitrary tags</span></div>
+      <div class="feat"><div class="feat-icon">💰</div><div class="feat-title">Cache-aware pricing</div><div class="feat-desc">Anthropic cache write vs read. OpenAI cached prompts. Versioned pricing — historical accuracy after provider changes.</div><span class="feat-tag">Per-provider logic</span></div>
+      <div class="feat"><div class="feat-icon">📊</div><div class="feat-title">Pre-built Grafana</div><div class="feat-desc"><code style="font-family:monospace;font-size:12px;">docker compose up</code> gives you TimescaleDB + Grafana with pre-provisioned dashboards. Zero configuration.</div><span class="feat-tag">Zero config</span></div>
+      <div class="feat"><div class="feat-icon">🛡</div><div class="feat-title">Resilient by default</div><div class="feat-desc">Local SQLite buffer survives DB downtime and process restarts. Auto-flushes when connectivity returns.</div><span class="feat-tag">SQLite fallback</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Providers -->
+<section class="providers" id="providers">
+  <div class="container">
+    <div class="eyebrow">Providers</div>
+    <h2 class="section-h2">All three. Day one.</h2>
+    <p class="section-sub">With correct per-provider token extraction — cache writes, reasoning tokens, context caching.</p>
+    <div class="provider-strip">
+      <div class="provider-card"><div class="provider-name">Anthropic</div><div class="provider-models">claude-sonnet-4-6<br>claude-opus-4-6<br>claude-haiku-4-5<br>+ batch pricing</div><span class="provider-note">cache_write · cache_read · thinking</span></div>
+      <div class="provider-card"><div class="provider-name">OpenAI</div><div class="provider-models">gpt-4o · gpt-4o-mini<br>o1 · o3-mini<br>+ batch pricing</div><span class="provider-note">cached_prompt · reasoning_tokens</span></div>
+      <div class="provider-card"><div class="provider-name">Gemini</div><div class="provider-models">gemini-2.0-flash<br>gemini-2.0-flash-lite<br>gemini-1.5-pro · flash</div><span class="provider-note">context_cache · thoughts_tokens</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container cta-inner">
+    <h2>Start tracking in<br>five minutes.</h2>
+    <p>docker compose up -d and one import change. That's it.</p>
+    <div class="cta-actions">
+      <a href="/docs/quickstart.html" class="btn-primary">Read the docs →</a>
+      <a href="https://github.com/bphiri/kostrack" target="_blank" class="btn-ghost">GitHub ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">kos<span>track</span></div>
+    <div class="footer-links">
+      <a href="/docs/">Docs</a>
+      <a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a>
+      <a href="https://pypi.org/project/kostrack" target="_blank">PyPI</a>
+      <a href="https://github.com/bphiri/kostrack/blob/main/LICENSE" target="_blank">Apache 2.0</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('copy-btn').addEventListener('click', function() {
+    navigator.clipboard.writeText('pip install kostrack');
+    this.textContent = '✓';
+    setTimeout(() => this.textContent = '⎘', 1500);
+  });
+</script>
+</body>
+</html>

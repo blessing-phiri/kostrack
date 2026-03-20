@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D1B2E"/>
+      <stop offset="100%" stop-color="#152540"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#1E3A5F"/>
+      <stop offset="100%" stop-color="#2E5480"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#E8891A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+
+  <!-- Bars -->
+  <rect x="8"  y="42" width="9" height="12" rx="2" fill="url(#bar)" opacity="0.45"/>
+  <rect x="20" y="34" width="9" height="20" rx="2" fill="url(#bar)" opacity="0.65"/>
+  <rect x="32" y="24" width="9" height="30" rx="2" fill="url(#bar)" opacity="0.85"/>
+  <rect x="44" y="14" width="9" height="40" rx="2" fill="url(#bar)"/>
+
+  <!-- Tracking line -->
+  <polyline
+    points="12.5,46 24.5,38 36.5,27 48.5,17"
+    stroke="url(#line)"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Tip dot -->
+  <circle cx="48.5" cy="17" r="4" fill="#F5A623"/>
+
+  <!-- Baseline -->
+  <line x1="6" y1="56" x2="58" y2="56" stroke="#F5A623" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+</svg>

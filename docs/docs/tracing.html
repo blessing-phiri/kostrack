@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracing & Spans — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">SDK Reference</div>
+    <h1 class="doc-h1">Tracing & Spans</h1>
+    <p class="doc-lead">Wrap multi-step agentic workflows to get total cost per workflow run — not just per individual API call.</p>
+    
+<h2 class="doc-h2">The problem</h2>
+<p>A single user action in a LangGraph agent might trigger 8–20 LLM calls across multiple models. Without tracing, you see 20 disconnected rows in your call log. With tracing, you see one workflow run costing $0.0047 — attributable to a feature, user, and timestamp.</p>
+
+<h2 class="doc-h2">trace()</h2>
+<p>Opens a root trace span. All LLM calls on the same thread inside the block are linked by <code>trace_id</code>:</p>
+<pre><code><span class="ck">import</span> <span class="ca">kostrack</span>
+<span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> Anthropic
+
+client = <span class="cf">Anthropic</span>(tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>})
+
+<span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">trace</span>(tags={<span class="cs">"feature"</span>: <span class="cs">"month-end-close"</span>}) <span class="ck">as</span> t:
+    result_1 = client.messages.<span class="cf">create</span>(...)
+    result_2 = client.messages.<span class="cf">create</span>(...)
+
+<span class="cf">print</span>(<span class="cs">f"Total: ${t.total_cost_usd:.6f} in {t.call_count} calls"</span>)</code></pre>
+
+<h2 class="doc-h2">span()</h2>
+<p>Opens a child span for named sub-workflows. Costs roll up from child spans to the root trace on exit:</p>
+<pre><code><span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">trace</span>(tags={<span class="cs">"feature"</span>: <span class="cs">"invoice-pipeline"</span>}) <span class="ck">as</span> root:
+    <span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">span</span>(<span class="cs">"validate"</span>, parent=root):
+        client.messages.<span class="cf">create</span>(...)   <span class="cc"># validation call</span>
+    <span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">span</span>(<span class="cs">"classify"</span>, parent=root):
+        oai_client.chat.completions.<span class="cf">create</span>(...)   <span class="cc"># OpenAI call</span>
+    <span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">span</span>(<span class="cs">"post"</span>, parent=root):
+        client.messages.<span class="cf">create</span>(...)   <span class="cc"># posting call</span>
+
+<span class="cc"># root.total_cost_usd = sum of all three spans</span></code></pre>
+
+<h2 class="doc-h2">Schema</h2>
+<table>
+  <tr><th>Column</th><th>Description</th></tr>
+  <tr><td><code>trace_id</code></td><td>UUID shared by all calls in a workflow run</td></tr>
+  <tr><td><code>span_id</code></td><td>UUID for this specific call</td></tr>
+  <tr><td><code>parent_span_id</code></td><td>UUID of the parent span (NULL for root calls)</td></tr>
+</table>
+
+<h2 class="doc-h2">Querying traces</h2>
+<pre><code><span class="cc">-- Total cost per workflow run, most expensive first</span>
+SELECT * FROM trace_costs
+ORDER BY total_cost_usd DESC LIMIT 20;
+
+<span class="cc">-- Calls in a specific trace</span>
+SELECT time, provider, model, cost_usd, tags->><span class="cs">'span_name'</span>
+FROM llm_calls
+WHERE trace_id = <span class="cs">'your-trace-uuid'</span>
+ORDER BY time;</code></pre>
+
+<h2 class="doc-h2">Thread safety</h2>
+<p>The trace stack is thread-local — each thread has its own active trace. Concurrent requests in a FastAPI or async application will never interfere with each other's traces.</p>
+
+<div class="callout callout-tip">
+  <div class="callout-title">LangGraph integration</div>
+  <p>Wrap your LangGraph <code>graph.invoke()</code> call inside a <code>kostrack.trace()</code> block. Every LLM node in the graph will automatically inherit the trace ID.</p>
+</div>
+
+    <div class="prev-next"><a href="/docs/gemini.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Gemini</div></a><a href="/docs/tags.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Attribution Tags</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('tracing');</script>
+</body>
+</html>

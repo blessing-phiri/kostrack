@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anthropic — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">SDK Reference</div>
+    <h1 class="doc-h1">Anthropic Provider</h1>
+    <p class="doc-lead">Drop-in replacement for anthropic.Anthropic. One import change — everything else is identical.</p>
+    
+<h2 class="doc-h2">Usage</h2>
+<pre><code><span class="cc"># Before</span>
+<span class="ck">from</span> anthropic <span class="ck">import</span> Anthropic
+
+<span class="cc"># After</span>
+<span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> Anthropic
+
+client = <span class="cf">Anthropic</span>(
+    tags={
+        <span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>,
+        <span class="cs">"feature"</span>: <span class="cs">"invoice-extraction"</span>,
+        <span class="cs">"environment"</span>: <span class="cs">"production"</span>,
+    }
+)
+
+response = client.messages.<span class="cf">create</span>(
+    model=<span class="cs">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="cf">1024</span>,
+    messages=[{<span class="cs">"role"</span>: <span class="cs">"user"</span>, <span class="cs">"content"</span>: <span class="cs">"..."</span>}],
+)</code></pre>
+
+<h2 class="doc-h2">Constructor parameters</h2>
+<table>
+  <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>tags</code></td><td>dict</td><td>Attribution tags applied to every call from this client.</td></tr>
+  <tr><td><code>pricing_model</code></td><td>str</td><td><code>"per_token"</code> (default) or <code>"batch"</code> — affects cost calculation.</td></tr>
+  <tr><td><code>**anthropic_kwargs</code></td><td>any</td><td>All other kwargs passed directly to <code>anthropic.Anthropic()</code> — <code>api_key</code>, <code>base_url</code>, etc.</td></tr>
+</table>
+
+<h2 class="doc-h2">Per-call tag override</h2>
+<p>Override tags for a specific call without changing the client:</p>
+<pre><code>client.messages.<span class="cf">create</span>(
+    model=<span class="cs">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="cf">512</span>,
+    messages=[...],
+    kostrack_tags={<span class="cs">"feature"</span>: <span class="cs">"override-for-this-call"</span>},
+)</code></pre>
+
+<h2 class="doc-h2">Supported models and pricing</h2>
+<table>
+  <tr><th>Model</th><th>Input / 1M tokens</th><th>Output / 1M tokens</th><th>Cache read / 1M</th></tr>
+  <tr><td>claude-sonnet-4-6</td><td>$3.00</td><td>$15.00</td><td>$0.30</td></tr>
+  <tr><td>claude-opus-4-6</td><td>$15.00</td><td>$75.00</td><td>$1.50</td></tr>
+  <tr><td>claude-haiku-4-5-20251001</td><td>$0.80</td><td>$4.00</td><td>$0.08</td></tr>
+</table>
+<p>Batch API pricing is 50% of standard rates on all models. Cache write tokens are priced at 125% of input rate.</p>
+
+<h2 class="doc-h2">Token breakdown</h2>
+<p>Anthropic-specific tokens are stored in <code>token_breakdown</code> JSONB and the flat columns:</p>
+<table>
+  <tr><th>Field</th><th>Description</th></tr>
+  <tr><td><code>input_tokens</code></td><td>Standard input tokens</td></tr>
+  <tr><td><code>output_tokens</code></td><td>Standard output tokens</td></tr>
+  <tr><td><code>cached_tokens</code></td><td>Cache read hits (flat column)</td></tr>
+  <tr><td><code>token_breakdown.cache_write</code></td><td>Tokens written to the prompt cache</td></tr>
+  <tr><td><code>token_breakdown.thinking</code></td><td>Extended thinking tokens (estimated)</td></tr>
+</table>
+
+    <div class="prev-next"><a href="/docs/docker.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Docker Setup</div></a><a href="/docs/openai.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">OpenAI</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('anthropic');</script>
+</body>
+</html>

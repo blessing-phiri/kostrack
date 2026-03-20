@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Environment Variables — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Configuration</div>
+    <h1 class="doc-h1">Environment Variables</h1>
+    <p class="doc-lead">All Kostrack configuration can be driven by environment variables — useful for containers, CI, and keeping secrets out of code.</p>
+    
+<h2 class="doc-h2">Reference</h2>
+<table>
+  <tr><th>Variable</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>KOSTRACK_DSN</code></td><td>Yes*</td><td>PostgreSQL DSN for TimescaleDB. Alternative to passing <code>dsn=</code> to <code>configure()</code>. Format: <code>postgresql://user:pass@host/db</code></td></tr>
+  <tr><td><code>ANTHROPIC_API_KEY</code></td><td>If using Anthropic</td><td>Passed through to the underlying Anthropic SDK.</td></tr>
+  <tr><td><code>OPENAI_API_KEY</code></td><td>If using OpenAI</td><td>Passed through to the underlying OpenAI SDK.</td></tr>
+  <tr><td><code>GEMINI_API_KEY</code></td><td>If using Gemini</td><td>Also checked as <code>GOOGLE_API_KEY</code>. Passed to google-genai SDK.</td></tr>
+  <tr><td><code>TSDB_PASSWORD</code></td><td>Docker Compose</td><td>Sets the TimescaleDB password used by <code>docker-compose.yml</code>.</td></tr>
+  <tr><td><code>GRAFANA_PASSWORD</code></td><td>Docker Compose</td><td>Sets the Grafana admin password.</td></tr>
+</table>
+
+<div class="callout callout-info">
+  <div class="callout-title">Note</div>
+  <p>* <code>KOSTRACK_DSN</code> is only required if you don't pass <code>dsn=</code> directly to <code>kostrack.configure()</code>.</p>
+</div>
+
+<h2 class="doc-h2">.env.example</h2>
+<pre><code>TSDB_PASSWORD=changeme
+GRAFANA_PASSWORD=changeme
+KOSTRACK_DSN=postgresql://kostrack:changeme@localhost/kostrack
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=AI...</code></pre>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Never commit .env</div>
+  <p>The <code>.env</code> file is in <code>.gitignore</code> by default. Commit <code>.env.example</code> instead.</p>
+</div>
+
+    <div class="prev-next"><a href="/docs/configure.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">configure()</div></a><a href="/docs/docker.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Docker Setup</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('environment');</script>
+</body>
+</html>

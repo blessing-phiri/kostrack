@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Start — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg>
+    <span class="nav-wordmark">kos<span>track</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Getting Started</div>
+    <h1 class="doc-h1">Quick Start</h1>
+    <p class="doc-lead">From zero to live cost data in Grafana in under five minutes. You need Docker, Python 3.11+, and at least one LLM API key.</p>
+
+    <h2 class="doc-h2">Step 1 — Clone and configure</h2>
+    <pre><code>git clone https://github.com/bphiri/kostrack.git
+cd kostrack
+cp .env.example .env</code></pre>
+    <p>Edit <code>.env</code> and set your passwords:</p>
+    <pre><code>TSDB_PASSWORD=your_secure_password
+GRAFANA_PASSWORD=your_grafana_password
+KOSTRACK_DSN=postgresql://kostrack:your_secure_password@localhost/kostrack</code></pre>
+
+    <h2 class="doc-h2">Step 2 — Start the stack</h2>
+    <pre><code>docker compose up -d</code></pre>
+    <p>This starts TimescaleDB on <code>localhost:5432</code> and Grafana on <code>localhost:3000</code>. The database schema and all seed pricing data load automatically from <code>init-db.sql</code> on first run.</p>
+    <p>Verify both services are healthy:</p>
+    <pre><code>docker compose ps</code></pre>
+
+    <div class="callout callout-info">
+      <div class="callout-title">First run only</div>
+      <p>The <code>init-db.sql</code> script only runs when the TimescaleDB volume is empty. If you need to re-run it manually: <code>docker exec -i kostrack-db psql -U kostrack -d kostrack &lt; init-db.sql</code></p>
+    </div>
+
+    <h2 class="doc-h2">Step 3 — Install the SDK</h2>
+    <pre><code>pip install kostrack</code></pre>
+    <p>Or install from the repo for local development:</p>
+    <pre><code>pip install -e ./sdk</code></pre>
+
+    <h2 class="doc-h2">Step 4 — Instrument your app</h2>
+    <p>Add three lines at startup and swap your provider import:</p>
+    <pre><code><span class="ck">import</span> <span class="ca">kostrack</span>
+
+<span class="cc"># Configure once — reads KOSTRACK_DSN env var if dsn= not passed</span>
+<span class="ca">kostrack</span>.<span class="cf">configure</span>(
+    dsn=<span class="cs">"postgresql://kostrack:your_password@localhost/kostrack"</span>,
+    service_id=<span class="cs">"my-app"</span>,
+)
+
+<span class="cc"># Before: from anthropic import Anthropic</span>
+<span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> Anthropic
+
+client = <span class="cf">Anthropic</span>(
+    tags={
+        <span class="cs">"project"</span>: <span class="cs">"my-app"</span>,
+        <span class="cs">"feature"</span>: <span class="cs">"summariser"</span>,
+        <span class="cs">"environment"</span>: <span class="cs">"production"</span>,
+    }
+)
+
+response = client.messages.<span class="cf">create</span>(
+    model=<span class="cs">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="cf">1024</span>,
+    messages=[{<span class="cs">"role"</span>: <span class="cs">"user"</span>, <span class="cs">"content"</span>: <span class="cs">"Summarise this..."</span>}],
+)</code></pre>
+
+    <h2 class="doc-h2">Step 5 — Open Grafana</h2>
+    <p>Go to <a href="http://localhost:3000" target="_blank"><strong>http://localhost:3000</strong></a> and log in with <code>admin</code> / your <code>GRAFANA_PASSWORD</code>.</p>
+    <p>The <strong>Kostrack — Overview</strong> dashboard loads automatically. Make a few API calls and refresh — you'll see spend by provider, spend over time, and a live call table.</p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">Run the integration test</div>
+      <p>With your stack running and API keys exported, verify the full pipeline works end-to-end:</p>
+    </div>
+    <pre><code>export ANTHROPIC_API_KEY=sk-ant-...
+export KOSTRACK_DSN=postgresql://kostrack:password@localhost/kostrack
+
+cd sdk
+python tests/integration_test.py</code></pre>
+
+    <h2 class="doc-h2">Next steps</h2>
+    <table>
+      <tr><th>What you want</th><th>Where to go</th></tr>
+      <tr><td>Add OpenAI or Gemini</td><td><a href="/docs/openai.html">OpenAI provider</a> · <a href="/docs/gemini.html">Gemini provider</a></td></tr>
+      <tr><td>Trace agentic workflows</td><td><a href="/docs/tracing.html">Tracing &amp; Spans</a></td></tr>
+      <tr><td>Integrate with FastAPI</td><td><a href="/docs/fastapi.html">FastAPI integration</a></td></tr>
+      <tr><td>Understand all config options</td><td><a href="/docs/configure.html">configure()</a></td></tr>
+    </table>
+
+    <div class="prev-next">
+      <a href="/docs/" class="pn-card">
+        <div class="pn-dir">← Previous</div>
+        <div class="pn-title">Introduction</div>
+      </a>
+      <a href="/docs/configure.html" class="pn-card next">
+        <div class="pn-dir">Next →</div>
+        <div class="pn-title">configure()</div>
+      </a>
+    </div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('quickstart');</script>
+</body>
+</html>

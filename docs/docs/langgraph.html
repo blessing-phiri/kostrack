@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangGraph — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Integrations</div>
+    <h1 class="doc-h1">LangGraph Integration</h1>
+    <p class="doc-lead">How to instrument LangGraph workflows for per-run cost attribution — the primary use case for Kostrack's trace/span system.</p>
+    
+<h2 class="doc-h2">Wrapping a LangGraph run</h2>
+<p>Wrap <code>graph.invoke()</code> inside a <code>kostrack.trace()</code> block. Every LLM call made by any node in the graph automatically inherits the trace ID:</p>
+<pre><code><span class="ck">import</span> <span class="ca">kostrack</span>
+<span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> Anthropic
+<span class="ck">from</span> langgraph.graph <span class="ck">import</span> StateGraph
+
+<span class="cc"># Use kostrack client in your nodes</span>
+llm = <span class="cf">Anthropic</span>(tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>})
+
+<span class="ck">def</span> <span class="cf">validate_node</span>(state):
+    response = llm.messages.<span class="cf">create</span>(
+        model=<span class="cs">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="cf">256</span>,
+        messages=[{<span class="cs">"role"</span>: <span class="cs">"user"</span>, <span class="cs">"content"</span>: state[<span class="cs">"input"</span>]}],
+        kostrack_tags={<span class="cs">"span_name"</span>: <span class="cs">"validate"</span>},
+    )
+    <span class="ck">return</span> {<span class="cs">"validated"</span>: response.content[<span class="cf">0</span>].text}
+
+<span class="ck">def</span> <span class="cf">classify_node</span>(state):
+    response = llm.messages.<span class="cf">create</span>(
+        model=<span class="cs">"claude-sonnet-4-6"</span>,
+        max_tokens=<span class="cf">512</span>,
+        messages=[{<span class="cs">"role"</span>: <span class="cs">"user"</span>, <span class="cs">"content"</span>: state[<span class="cs">"validated"</span>]}],
+        kostrack_tags={<span class="cs">"span_name"</span>: <span class="cs">"classify"</span>},
+    )
+    <span class="ck">return</span> {<span class="cs">"classification"</span>: response.content[<span class="cf">0</span>].text}
+
+graph = <span class="cf">StateGraph</span>(dict)
+graph.<span class="cf">add_node</span>(<span class="cs">"validate"</span>, validate_node)
+graph.<span class="cf">add_node</span>(<span class="cs">"classify"</span>, classify_node)
+graph.<span class="cf">add_edge</span>(<span class="cs">"validate"</span>, <span class="cs">"classify"</span>)
+graph.<span class="cf">set_entry_point</span>(<span class="cs">"validate"</span>)
+app = graph.<span class="cf">compile</span>()
+
+<span class="cc"># Wrap the run in a trace</span>
+<span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">trace</span>(
+    tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>, <span class="cs">"feature"</span>: <span class="cs">"invoice-pipeline"</span>}
+) <span class="ck">as</span> t:
+    result = app.<span class="cf">invoke</span>({<span class="cs">"input"</span>: <span class="cs">"Invoice #1234..."</span>})
+
+<span class="cf">print</span>(<span class="cs">f"Pipeline cost: ${t.total_cost_usd:.6f}"</span>)
+<span class="cf">print</span>(<span class="cs">f"API calls: {t.call_count}"</span>)</code></pre>
+
+<h2 class="doc-h2">Multi-model workflows</h2>
+<p>Mix providers in the same trace — all calls share the same <code>trace_id</code>:</p>
+<pre><code><span class="ck">from</span> <span class="ca">kostrack</span> <span class="ck">import</span> Anthropic, OpenAI
+
+anthropic_llm = <span class="cf">Anthropic</span>(tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>})
+openai_llm = <span class="cf">OpenAI</span>(tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>})
+
+<span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">trace</span>(tags={<span class="cs">"feature"</span>: <span class="cs">"hybrid-pipeline"</span>}) <span class="ck">as</span> t:
+    <span class="cc"># Extraction with Anthropic</span>
+    extracted = anthropic_llm.messages.<span class="cf">create</span>(...)
+    <span class="cc"># Classification with OpenAI (cheaper)</span>
+    classified = openai_llm.chat.completions.<span class="cf">create</span>(...)</code></pre>
+
+<h2 class="doc-h2">Querying workflow costs</h2>
+<pre><code><span class="cc">-- Average cost per invoice pipeline run, last 7 days</span>
+SELECT AVG(total_cost_usd) AS avg_cost,
+       COUNT(*) AS runs,
+       MAX(total_cost_usd) AS max_cost
+FROM trace_costs
+WHERE feature = <span class="cs">'invoice-pipeline'</span>
+  AND started_at > NOW() - INTERVAL <span class="cs">'7 days'</span>;</code></pre>
+
+    <div class="prev-next"><a href="/docs/fastapi.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">FastAPI</div></a><div></div></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('langgraph');</script>
+</body>
+</html>

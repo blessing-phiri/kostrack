@@ -1,6 +1,17 @@
-# kostrack
+<div align="center">
+
+<img src="https://kostrack.netlify.app/assets/kostrack-logo-dark.png" alt="Kostrack" width="280">
 
 **AI API cost governance** — track, attribute, and govern LLM API spend across Anthropic, OpenAI, and Gemini, with full agentic workflow cost rollup.
+
+[![PyPI](https://img.shields.io/pypi/v/kostrack?color=F5A623&labelColor=0D1B2E)](https://pypi.org/project/kostrack)
+[![License](https://img.shields.io/badge/license-Apache%202.0-6B7FA3?labelColor=0D1B2E)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-41%20passed-2A8A4A?labelColor=0D1B2E)](sdk/tests)
+[![Python](https://img.shields.io/badge/python-3.11%2B-6B7FA3?labelColor=0D1B2E)](pyproject.toml)
+
+[**Docs**](https://kostrack.netlify.app/docs/) · [**Quick Start**](https://kostrack.netlify.app/docs/quickstart.html) · [**PyPI**](https://pypi.org/project/kostrack)
+
+</div>
 
 ---
 
@@ -16,8 +27,6 @@ Your App → kostrack SDK → LLM Provider (Anthropic / OpenAI / Gemini)
             Grafana
 ```
 
----
-
 ## Why not Helicone or LangSmith?
 
 Those tools are built for ML engineers — prompt logging, evals, model quality. Kostrack is built for **financial governance**: cost per feature, cost per workflow run, budget alerts, CFO-exportable reports. Nobody else does agentic cost rollup or targets the African enterprise market where USD-denominated API costs hit differently.
@@ -26,23 +35,16 @@ Those tools are built for ML engineers — prompt logging, evals, model quality.
 
 ## Quick start
 
-### 1. Start the stack
-
 ```bash
-cp .env.example .env        # set your passwords
+# 1. Start the stack
+cp .env.example .env       # set your passwords
 docker compose up -d
-```
 
-TimescaleDB starts on `localhost:5432`, Grafana on `localhost:3000`.
-Schema and seed pricing load automatically on first run.
-
-### 2. Install the SDK
-
-```bash
+# 2. Install the SDK
 pip install kostrack
-```
 
-### 3. Configure and instrument
+# 3. Instrument your app
+```
 
 ```python
 import kostrack
@@ -51,17 +53,10 @@ kostrack.configure(
     dsn="postgresql://kostrack:yourpassword@localhost/kostrack",
     service_id="your-app-name",
 )
-```
 
-### 4. Swap one import
-
-```python
-# Before
-from anthropic import Anthropic
-client = Anthropic()
-
-# After — identical API, costs captured
+# Before: from anthropic import Anthropic
 from kostrack import Anthropic
+
 client = Anthropic(
     tags={
         "project":     "openmanagr",
@@ -69,22 +64,17 @@ client = Anthropic(
         "environment": "production",
     }
 )
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Summarise this invoice..."}],
+)
 ```
 
-Same pattern for OpenAI and Gemini:
-
-```python
-from kostrack import OpenAI, GenerativeModel
-
-oai = OpenAI(tags={"project": "openmanagr", "feature": "gl-classification"})
-gem = GenerativeModel("gemini-2.0-flash", tags={"project": "openmanagr"})
+```bash
+# 4. Open Grafana → http://localhost:3000
 ```
-
-### 5. Open Grafana
-
-→ **http://localhost:3000** · login: `admin` / your `GRAFANA_PASSWORD`
-
-The **Kostrack — Overview** dashboard loads automatically.
 
 ---
 
@@ -109,101 +99,31 @@ with kostrack.trace(tags={"feature": "month-end-close"}) as t:
 print(f"Workflow cost: ${t.total_cost_usd:.6f} across {t.call_count} calls")
 ```
 
-All child calls share a `trace_id`. Query the rollup:
-
-```sql
-SELECT * FROM trace_costs ORDER BY total_cost_usd DESC LIMIT 10;
-```
-
 ---
 
-## FastAPI integration
+## All three providers
 
 ```python
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
-import kostrack
+from kostrack import Anthropic, OpenAI, GenerativeModel
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    kostrack.configure(
-        dsn="postgresql://kostrack:password@localhost/kostrack",
-        service_id="openmanagr",
-    )
-    yield
-    kostrack.shutdown()
-
-app = FastAPI(lifespan=lifespan)
-
-@app.get("/kostrack/health")
-def health():
-    return kostrack.health()
-```
-
----
-
-## Attribution tags
-
-```python
-tags = {
-    # Reserved — shown in Grafana dropdowns
-    "project":     "openmanagr",
-    "feature":     "invoice-extraction",
-    "team":        "engineering",
-    "environment": "production",
-    "user_id":     "user_123",
-    # Any additional keys allowed
-    "ab_test":     "variant-b",
-}
-```
-
-Override tags per call:
-
-```python
-client.messages.create(
-    model="claude-sonnet-4-6",
-    max_tokens=512,
-    messages=[...],
-    kostrack_tags={"feature": "override-for-this-call"},
-)
+anthropic = Anthropic(tags={"project": "myapp"})
+openai    = OpenAI(tags={"project": "myapp"})
+gemini    = GenerativeModel("gemini-2.0-flash", tags={"project": "myapp"})
 ```
 
 ---
 
 ## Architecture
 
-| Layer      | Technology                          |
-| ---------- | ----------------------------------- |
-| SDK        | Python 3.11+, provider SDKs         |
+| Layer | Technology |
+|-------|-----------|
+| SDK | Python 3.11+, provider SDKs |
 | Write path | Async batch writer, SQLite fallback |
-| Database   | TimescaleDB (Postgres extension)    |
-| Dashboards | Grafana — pre-provisioned           |
-| Deployment | Docker Compose                      |
+| Database | TimescaleDB (Postgres extension) |
+| Dashboards | Grafana — pre-provisioned |
+| Deployment | Docker Compose |
 
-**Resilience:** If TimescaleDB is unreachable, records buffer to `~/.kostrack/buffer.db` and flush automatically when connectivity returns. Write overhead is under 5ms — never blocks your LLM calls.
-
----
-
-## Supported providers
-
-| Provider  | Models                                                        | Special tokens                    |
-| --------- | ------------------------------------------------------------- | --------------------------------- |
-| Anthropic | claude-sonnet-4-6, claude-opus-4-6, claude-haiku-4-5 + batch  | cache_write, cache_read, thinking |
-| OpenAI    | gpt-4o, gpt-4o-mini, o1, o3-mini + batch                      | cached_prompt, reasoning_tokens   |
-| Gemini    | gemini-2.0-flash, gemini-2.0-flash-lite, gemini-1.5-pro/flash | context_cache, thoughts_tokens    |
-
----
-
-## Environment variables
-
-| Variable            | Description                                                     |
-| ------------------- | --------------------------------------------------------------- |
-| `KOSTRACK_DSN`      | PostgreSQL DSN — alternative to passing `dsn=` to `configure()` |
-| `ANTHROPIC_API_KEY` | Anthropic API key                                               |
-| `OPENAI_API_KEY`    | OpenAI API key                                                  |
-| `GEMINI_API_KEY`    | Gemini API key                                                  |
-| `TSDB_PASSWORD`     | TimescaleDB password (Docker Compose)                           |
-| `GRAFANA_PASSWORD`  | Grafana admin password                                          |
+**Resilience:** If TimescaleDB is unreachable, records buffer to `~/.kostrack/buffer.db` and flush automatically when connectivity returns. Write overhead is under 5ms.
 
 ---
 
@@ -213,37 +133,26 @@ client.messages.create(
 cd sdk
 pip install -e ".[dev]"
 
-# Offline unit tests — no keys or DB needed
-python -m pytest tests/test_e2e.py -v
-
-# Live integration test — requires running stack and API keys
-python tests/integration_test.py
+python -m pytest tests/test_e2e.py -v         # 41 tests, offline
+python tests/integration_test.py              # live integration test
 ```
-
-41 unit tests, 0 failures.
 
 ---
 
-## Project structure
+## Documentation
 
-```
-kostrack/
-├── docker-compose.yml
-├── init-db.sql
-├── .env.example
-├── grafana-provisioning/
-│   ├── datasources/kostrack.yml
-│   └── dashboards/overview.json
-└── sdk/
-    ├── pyproject.toml
-    └── kostrack/
-        ├── __init__.py
-        ├── models.py
-        ├── tracing.py
-        ├── providers/
-        ├── calculators/
-        └── writers/
-```
+Full documentation at **[kostrack.netlify.app/docs](https://kostrack.netlify.app/docs/)**
+
+- [Introduction](https://kostrack.netlify.app/docs/)
+- [Quick Start](https://kostrack.netlify.app/docs/quickstart.html)
+- [configure()](https://kostrack.netlify.app/docs/configure.html)
+- [Anthropic provider](https://kostrack.netlify.app/docs/anthropic.html)
+- [OpenAI provider](https://kostrack.netlify.app/docs/openai.html)
+- [Gemini provider](https://kostrack.netlify.app/docs/gemini.html)
+- [Tracing & Spans](https://kostrack.netlify.app/docs/tracing.html)
+- [LangGraph integration](https://kostrack.netlify.app/docs/langgraph.html)
+- [FastAPI integration](https://kostrack.netlify.app/docs/fastapi.html)
+- [Useful Queries](https://kostrack.netlify.app/docs/queries.html)
 
 ---
 
@@ -251,4 +160,4 @@ kostrack/
 
 Apache 2.0 — see [LICENSE](LICENSE).
 
-_Built by [Blessing Phiri](https://github.com/bphiri) · Harare, Zimbabwe._
+*Built by [Blessing Phiri](https://github.com/bphiri) · Applied AI Engineer · Init Data Solutions · Harare, Zimbabwe.*

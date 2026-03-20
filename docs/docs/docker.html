@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Setup — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Configuration</div>
+    <h1 class="doc-h1">Docker Setup</h1>
+    <p class="doc-lead">Kostrack ships a single docker-compose.yml that starts TimescaleDB and Grafana with everything pre-configured.</p>
+    
+<h2 class="doc-h2">Starting the stack</h2>
+<pre><code>docker compose up -d       <span class="cc"># start in background</span>
+docker compose ps          <span class="cc"># verify both services healthy</span>
+docker compose logs -f     <span class="cc"># follow logs</span></code></pre>
+
+<h2 class="doc-h2">What starts</h2>
+<table>
+  <tr><th>Container</th><th>Port</th><th>Description</th></tr>
+  <tr><td><code>kostrack-db</code></td><td>5432</td><td>TimescaleDB (Postgres 15 + TimescaleDB extension). Schema loaded from <code>init-db.sql</code> on first run.</td></tr>
+  <tr><td><code>kostrack-grafana</code></td><td>3000</td><td>Grafana with pre-provisioned datasource and Overview dashboard.</td></tr>
+</table>
+
+<h2 class="doc-h2">Data persistence</h2>
+<p>All data lives in named Docker volumes:</p>
+<table>
+  <tr><th>Volume</th><th>Contents</th></tr>
+  <tr><td><code>timescale-data</code></td><td>All <code>llm_calls</code>, pricing, budgets</td></tr>
+  <tr><td><code>grafana-data</code></td><td>Grafana dashboard customisations</td></tr>
+</table>
+<pre><code>docker compose down         <span class="cc"># stop — data preserved</span>
+docker compose down -v      <span class="cc"># stop AND delete all data (reset)</span></code></pre>
+
+<h2 class="doc-h2">Useful DB commands</h2>
+<pre><code><span class="cc"># Connect to the database</span>
+docker exec -it kostrack-db psql -U kostrack -d kostrack
+
+<span class="cc"># Check recent calls</span>
+SELECT time, provider, model, cost_usd, tags->><span class="cs">'project'</span>
+FROM llm_calls ORDER BY time DESC LIMIT 20;
+
+<span class="cc"># Spend today by project</span>
+SELECT tags->><span class="cs">'project'</span>, SUM(cost_usd)
+FROM llm_calls
+WHERE time >= date_trunc(<span class="cs">'day'</span>, NOW())
+GROUP BY 1 ORDER BY 2 DESC;
+
+<span class="cc"># Check writer health</span>
+SELECT * FROM writer_health;
+
+<span class="cc"># Verify pricing loaded</span>
+SELECT provider, model, input_rate, output_rate
+FROM pricing_current ORDER BY provider, model;</code></pre>
+
+<div class="callout callout-tip">
+  <div class="callout-title">Schema not loading?</div>
+  <p>The init script only runs on a fresh volume. To re-run manually:</p>
+</div>
+<pre><code>docker exec -i kostrack-db psql -U kostrack -d kostrack &lt; init-db.sql</code></pre>
+
+    <div class="prev-next"><a href="/docs/environment.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Environment Vars</div></a><a href="/docs/anthropic.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Anthropic</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('docker');</script>
+</body>
+</html>

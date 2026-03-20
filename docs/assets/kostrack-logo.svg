@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <defs>
+    <linearGradient id="markGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#E8891A"/>
+    </linearGradient>
+    <linearGradient id="barGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#1A2B4A"/>
+      <stop offset="100%" stop-color="#243660"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Logomark: cost bars with upward tracking line -->
+  <g transform="translate(0, 8)">
+    <!-- Bar chart columns -->
+    <rect x="4"  y="38" width="8" height="18" rx="1.5" fill="url(#barGrad)" opacity="0.5"/>
+    <rect x="15" y="28" width="8" height="28" rx="1.5" fill="url(#barGrad)" opacity="0.65"/>
+    <rect x="26" y="20" width="8" height="36" rx="1.5" fill="url(#barGrad)" opacity="0.8"/>
+    <rect x="37" y="10" width="8" height="46" rx="1.5" fill="url(#barGrad)"/>
+
+    <!-- Tracking line overlay — ascending -->
+    <polyline
+      points="8,44 19,34 30,24 41,14"
+      stroke="url(#markGrad)"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+
+    <!-- Terminal dot at tip -->
+    <circle cx="41" cy="14" r="3.5" fill="#F5A623"/>
+
+    <!-- Baseline -->
+    <line x1="0" y1="57" x2="50" y2="57" stroke="#F5A623" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text
+    x="64"
+    y="52"
+    font-family="'DM Mono', 'Fira Mono', 'Courier New', monospace"
+    font-size="28"
+    font-weight="500"
+    letter-spacing="-0.5"
+    fill="#0D1B2E"
+  >kos<tspan fill="#F5A623">track</tspan></text>
+
+  <!-- Tagline -->
+  <text
+    x="65"
+    y="68"
+    font-family="'DM Sans', 'Inter', sans-serif"
+    font-size="9.5"
+    font-weight="400"
+    letter-spacing="2.5"
+    fill="#6B7FA3"
+    text-anchor="start"
+  >AI API COST GOVERNANCE</text>
+</svg>

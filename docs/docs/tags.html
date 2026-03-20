@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attribution Tags — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">SDK Reference</div>
+    <h1 class="doc-h1">Attribution Tags</h1>
+    <p class="doc-lead">Tags are the core attribution mechanism in Kostrack — every API call carries a dict of key-value pairs you define.</p>
+    
+<h2 class="doc-h2">Setting tags on the client</h2>
+<p>Tags set on the client apply to every call made with that client:</p>
+<pre><code>client = <span class="cf">Anthropic</span>(tags={
+    <span class="cs">"project"</span>:     <span class="cs">"openmanagr"</span>,
+    <span class="cs">"feature"</span>:     <span class="cs">"invoice-extraction"</span>,
+    <span class="cs">"team"</span>:        <span class="cs">"engineering"</span>,
+    <span class="cs">"environment"</span>: <span class="cs">"production"</span>,
+    <span class="cs">"user_id"</span>:     <span class="cs">"user_123"</span>,
+})</code></pre>
+
+<h2 class="doc-h2">Per-call overrides</h2>
+<p>Override or add tags for a specific call using <code>kostrack_tags</code>:</p>
+<pre><code>client.messages.<span class="cf">create</span>(
+    model=<span class="cs">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="cf">512</span>,
+    messages=[...],
+    kostrack_tags={
+        <span class="cs">"feature"</span>: <span class="cs">"different-feature"</span>,
+        <span class="cs">"ab_test"</span>: <span class="cs">"variant-b"</span>,
+    }
+)</code></pre>
+
+<h2 class="doc-h2">Reserved keys</h2>
+<p>These keys appear as dropdown variables in the Grafana Overview dashboard:</p>
+<table>
+  <tr><th>Key</th><th>Example</th><th>Grafana panel</th></tr>
+  <tr><td><code>project</code></td><td>openmanagr</td><td>Project filter dropdown</td></tr>
+  <tr><td><code>feature</code></td><td>invoice-extraction</td><td>Attribution dashboard</td></tr>
+  <tr><td><code>team</code></td><td>engineering</td><td>Team spend breakdown</td></tr>
+  <tr><td><code>environment</code></td><td>production</td><td>Env filter dropdown</td></tr>
+  <tr><td><code>user_id</code></td><td>user_123</td><td>Per-user cost tracking</td></tr>
+</table>
+
+<h2 class="doc-h2">Custom keys</h2>
+<p>Any key beyond the reserved set is stored in the JSONB <code>tags</code> column and GIN-indexed for fast queries:</p>
+<pre><code><span class="cc">-- Spend by A/B test variant</span>
+SELECT tags->><span class="cs">'ab_test'</span> AS variant, SUM(cost_usd)
+FROM llm_calls
+WHERE tags ? <span class="cs">'ab_test'</span>
+GROUP BY 1;</code></pre>
+
+    <div class="prev-next"><a href="/docs/tracing.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Tracing & Spans</div></a><a href="/docs/grafana.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Grafana Overview</div></a></div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('tags');</script>
+</body>
+</html>
