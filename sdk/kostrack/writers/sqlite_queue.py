@@ -16,9 +16,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("tokenledger.sqlite")
+logger = logging.getLogger("kostrack.sqlite")
 
-DEFAULT_PATH = Path.home() / ".tokenledger" / "buffer.db"
+DEFAULT_PATH = Path.home() / ".kostrack" / "buffer.db"
 
 
 class SQLiteQueue:

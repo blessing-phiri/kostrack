@@ -6,8 +6,8 @@ Quick start:
 
     kostrack.configure(dsn="postgresql://kostrack:changeme@localhost/kostrack")
 
+    # Anthropic
     from kostrack import Anthropic
-
     client = Anthropic(tags={"project": "myapp", "feature": "summariser"})
     response = client.messages.create(
         model="claude-sonnet-4-6",
@@ -15,11 +15,24 @@ Quick start:
         messages=[{"role": "user", "content": "Summarise this invoice..."}]
     )
 
-With agentic tracing:
-    with kostrack.trace(tags={"project": "openmanagr", "feature": "month-end"}) as t:
-        response = client.messages.create(...)
+    # OpenAI
+    from kostrack import OpenAI
+    client = OpenAI(tags={"project": "myapp", "feature": "classifier"})
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        max_tokens=512,
+        messages=[{"role": "user", "content": "Classify this transaction..."}]
+    )
 
-    print(f"Total cost: ${t.total_cost_usd:.6f}")
+    # Gemini
+    from kostrack import GenerativeModel
+    model = GenerativeModel("gemini-2.0-flash", tags={"project": "myapp"})
+    response = model.generate_content("Extract text from this document...")
+
+Agentic tracing:
+    with kostrack.trace(tags={"project": "openmanagr", "feature": "month-end"}) as t:
+        result = agent.run(task)
+    print(f"Workflow cost: ${t.total_cost_usd:.6f} across {t.call_count} calls")
 """
 
 from __future__ import annotations
@@ -32,7 +45,11 @@ from typing import Any
 from kostrack.writers.batch_writer import AsyncBatchWriter
 from kostrack.calculators.pricing_engine import PricingEngine
 from kostrack.providers.anthropic_provider import Anthropic
+from kostrack.providers.openai_provider import OpenAI
+from kostrack.providers.gemini_provider import GenerativeModel
 import kostrack.providers.anthropic_provider as _anthropic_provider
+import kostrack.providers.openai_provider as _openai_provider
+import kostrack.providers.gemini_provider as _gemini_provider
 from kostrack.tracing import trace, span, get_active_trace
 from kostrack.models import TraceContext, CallRecord, TokenBreakdown
 
@@ -42,6 +59,8 @@ __all__ = [
     "shutdown",
     "health",
     "Anthropic",
+    "OpenAI",
+    "GenerativeModel",
     "trace",
     "span",
     "get_active_trace",
@@ -71,13 +90,19 @@ def configure(
 
     Args:
         dsn:             PostgreSQL DSN for TimescaleDB.
-                         Defaults to TOKENLEDGER_DSN env var.
+                         Defaults to KOSTRACK_DSN env var.
         service_id:      Identifies this service in writer_health and queries.
         flush_interval:  Seconds between write batches.
         max_batch_size:  Max rows per TimescaleDB insert.
-        sqlite_path:     Override default SQLite buffer path.
+        sqlite_path:     Override default SQLite buffer path (~/.kostrack/buffer.db).
         fail_open:       If True, swallow all write errors silently.
         log_level:       Log level for kostrack loggers.
+
+    Example:
+        kostrack.configure(
+            dsn="postgresql://kostrack:changeme@localhost/kostrack",
+            service_id="openmanagr",
+        )
     """
     global _writer, _pricing
 
@@ -85,10 +110,10 @@ def configure(
         getattr(logging, log_level.upper(), logging.WARNING)
     )
 
-    resolved_dsn = dsn or os.environ.get("TOKENLEDGER_DSN")
+    resolved_dsn = dsn or os.environ.get("KOSTRACK_DSN")
     if not resolved_dsn:
         raise ValueError(
-            "No DSN provided. Pass dsn= to configure() or set TOKENLEDGER_DSN env var."
+            "No DSN provided. Pass dsn= to configure() or set KOSTRACK_DSN env var."
         )
 
     _pricing = PricingEngine(dsn=resolved_dsn)
@@ -101,21 +126,39 @@ def configure(
         fail_open=fail_open,
     )
 
-    # Inject into provider modules
+    # Inject into all three provider modules
     _anthropic_provider._global_writer = _writer
     _anthropic_provider._global_pricing = _pricing
+    _openai_provider._global_writer = _writer
+    _openai_provider._global_pricing = _pricing
+    _gemini_provider._global_writer = _writer
+    _gemini_provider._global_pricing = _pricing
 
-    logger.info("kostrack configured — service_id=%s", service_id)
+    logger.info("kostrack configured — service_id=%s version=%s", service_id, __version__)
 
 
 def health() -> dict[str, Any]:
-    """Return current writer health state."""
+    """
+    Return current writer health state.
+
+    Example (FastAPI):
+        @app.get("/kostrack/health")
+        def kostrack_health():
+            return kostrack.health()
+    """
     if _writer is None:
         return {"status": "not_configured"}
     return {"status": "ok", **_writer.health()}
 
 
 def shutdown(timeout: float = 10.0) -> None:
-    """Graceful shutdown — flush remaining queue before process exits."""
+    """
+    Graceful shutdown — flush remaining queue before process exits.
+
+    Example (FastAPI):
+        @app.on_event("shutdown")
+        def on_shutdown():
+            kostrack.shutdown()
+    """
     if _writer:
         _writer.stop(timeout=timeout)

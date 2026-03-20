@@ -65,8 +65,8 @@ class Messages:
         """
         call_tags = {**self._base_tags}
 
-        # Allow per-call tag overrides via tokenledger_tags kwarg
-        extra_tags = kwargs.pop("tokenledger_tags", {})
+        # Allow per-call tag overrides via kostrack_tags kwarg
+        extra_tags = kwargs.pop("kostrack_tags", {})
         call_tags.update(extra_tags)
 
         # Time the call
@@ -97,10 +97,12 @@ class Messages:
         )
 
         # Attach trace context if active
-        if self._trace_ctx:
-            record.trace_id = self._trace_ctx.trace_id
-            record.parent_span_id = self._trace_ctx.span_id
-            self._trace_ctx.record_call(cost_usd) 
+        from kostrack.tracing import get_active_trace
+        active_trace = self._trace_ctx or get_active_trace()
+        if active_trace:
+            record.trace_id = active_trace.trace_id
+            record.parent_span_id = active_trace.span_id
+            active_trace.record_call(cost_usd)
         
 
         self._writer.write(record.to_row())
@@ -123,7 +125,7 @@ class Messages:
         Falls back to non-streaming if usage not available in stream.
         """
         call_tags = {**self._base_tags}
-        extra_tags = kwargs.pop("tokenledger_tags", {})
+        extra_tags = kwargs.pop("kostrack_tags", {})
         call_tags.update(extra_tags)
 
         start = time.monotonic()
@@ -160,10 +162,12 @@ class Messages:
             tags=call_tags,
         )
 
-        if self._trace_ctx:
-            record.trace_id = self._trace_ctx.trace_id
-            record.parent_span_id = self._trace_ctx.span_id
-            self._trace_ctx.record_call(cost_usd)
+        from kostrack.tracing import get_active_trace
+        active_trace = self._trace_ctx or get_active_trace()
+        if active_trace:
+            record.trace_id = active_trace.trace_id
+            record.parent_span_id = active_trace.span_id
+            active_trace.record_call(cost_usd)
 
         self._writer.write(record.to_row())
 
