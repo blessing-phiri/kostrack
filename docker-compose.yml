@@ -1,0 +1,49 @@
+services:
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: tokenledger-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tokenledger
+      POSTGRES_USER: tokenledger
+      POSTGRES_PASSWORD: ${TSDB_PASSWORD:-changeme}
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tokenledger -d tokenledger"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tokenledger-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "http://localhost:3000"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/overview.json
+      # Pass DB connection through to Grafana provisioning
+      TSDB_HOST: timescaledb
+      TSDB_PORT: 5432
+      TSDB_DB: tokenledger
+      TSDB_USER: tokenledger
+      TSDB_PASSWORD: ${TSDB_PASSWORD:-changeme}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+volumes:
+  timescale-data:
+  grafana-data:
