@@ -1,7 +1,7 @@
 # Environment
 .env
 .env.*
-.env.example
+.pypirc
 
 # Python
 __pycache__/
