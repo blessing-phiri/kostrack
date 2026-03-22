@@ -359,6 +359,30 @@ VALUES
 
 ON CONFLICT DO NOTHING;
 
+
+-- -------------------------
+-- DeepSeek
+-- -------------------------
+INSERT INTO pricing (provider, model, pricing_model, input_rate, output_rate, cache_read_rate, effective_from, metadata)
+VALUES
+-- DeepSeek-V3
+('deepseek', 'deepseek-chat', 'per_token',
+    0.27 / 1000000,
+    1.10 / 1000000,
+    0.07 / 1000000,
+    '2025-01-01 00:00:00+00',
+    '{"notes": "DeepSeek-V3, 64k context. Cache hit = $0.07/M input tokens."}'::jsonb),
+
+-- DeepSeek-R1
+('deepseek', 'deepseek-reasoner', 'per_token',
+    0.55 / 1000000,
+    2.19 / 1000000,
+    0.14 / 1000000,
+    '2025-01-01 00:00:00+00',
+    '{"notes": "DeepSeek-R1. Reasoning tokens billed as output. Cache hit = $0.14/M."}'::jsonb)
+
+ON CONFLICT DO NOTHING;
+
 -- =============================================================================
 -- HELPER VIEWS
 -- =============================================================================

@@ -100,7 +100,7 @@ class ChatCompletions:
         if active_trace:
             record.trace_id = active_trace.trace_id
             record.parent_span_id = active_trace.span_id
-            active_trace.record_call(cost_usd)
+            active_trace.record_call(cost_usd, model=model)
 
         self._writer.write(record.to_row())
 
@@ -167,7 +167,7 @@ class ChatCompletions:
         if active_trace:
             record.trace_id = active_trace.trace_id
             record.parent_span_id = active_trace.span_id
-            active_trace.record_call(cost_usd)
+            active_trace.record_call(cost_usd, model=model)
 
         self._writer.write(record.to_row())
 

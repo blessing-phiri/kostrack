@@ -44,6 +44,22 @@ services:
       timescaledb:
         condition: service_healthy
 
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: kostrack-api
+    restart: unless-stopped
+    environment:
+      KOSTRACK_DSN: postgresql://kostrack:${TSDB_PASSWORD:-changeme}@timescaledb:5432/kostrack
+      KOSTRACK_API_KEY: ${KOSTRACK_API_KEY:-}
+      KOSTRACK_SERVICE_ID: api
+    ports:
+      - "8080:8080"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
 volumes:
   timescale-data:
   grafana-data:

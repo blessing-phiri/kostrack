@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Enforcement — Kostrack Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/docs.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg>
+    <span class="nav-wordmark">kos<span>track</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/docs/" class="active">Docs</a></li>
+    <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+  </ul>
+</nav>
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="docs-content">
+    <div class="doc-eyebrow">Phase 2</div>
+    <h1 class="doc-h1">Budget Enforcement</h1>
+    <p class="doc-lead">Set spend limits per project, team, or any tag. Get alerts at threshold, or enforce hard limits that block calls before they're made.</p>
+
+    <h2 class="doc-h2">Set a budget</h2>
+    <pre><code><span class="ck">import</span> <span class="ca">kostrack</span>
+
+<span class="ca">kostrack</span>.<span class="cf">configure</span>(dsn=<span class="cs">"postgresql://..."</span>)
+enforcer = <span class="ca">kostrack</span>.<span class="cf">budget_enforcer</span>()
+
+<span class="cc"># Alert at 80%, hard limit at 100%</span>
+enforcer.<span class="cf">set_budget</span>(
+    tag_key=<span class="cs">"project"</span>,
+    tag_value=<span class="cs">"openmanagr"</span>,
+    period=<span class="cs">"monthly"</span>,
+    limit_usd=<span class="cf">50.0</span>,
+    alert_threshold=<span class="cf">0.80</span>,
+    enforce=<span class="ck">False</span>,   <span class="cc"># alert only — set True to block calls</span>
+)</code></pre>
+
+    <h2 class="doc-h2">Alert-only mode</h2>
+    <p>When <code>enforce=False</code>, Kostrack logs a warning when the threshold is crossed but never blocks calls:</p>
+    <pre><code><span class="cc"># WARNING: Budget alert: project=openmanagr (monthly) at 83.2% ($41.60 / $50.00)</span></code></pre>
+
+    <h2 class="doc-h2">Hard enforcement</h2>
+    <p>When <code>enforce=True</code>, calls raise <code>BudgetExceededError</code> when the limit is reached. Use <code>guard()</code> to wrap calls:</p>
+    <pre><code><span class="ck">from</span> <span class="ca">kostrack</span>.<span class="cf">budget</span> <span class="ck">import</span> BudgetExceededError
+
+<span class="ck">try</span>:
+    <span class="ck">with</span> enforcer.<span class="cf">guard</span>(tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>}):
+        response = client.messages.<span class="cf">create</span>(...)
+<span class="ck">except</span> BudgetExceededError <span class="ck">as</span> e:
+    <span class="cf">print</span>(<span class="cs">f"Blocked: {e}"</span>)
+    <span class="cc"># Handle gracefully — return cached result, use cheaper model, etc.</span></code></pre>
+
+    <h2 class="doc-h2">Check budget status</h2>
+    <pre><code><span class="cc"># Check all budgets matching these tags</span>
+status = enforcer.<span class="cf">check</span>(tags={<span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>})
+<span class="ck">for</span> b <span class="ck">in</span> status:
+    <span class="cf">print</span>(<span class="cs">f"{b['tag_value']}: {b['pct']*100:.1f}% (${b['spent']:.4f} / ${b['limit']:.2f})"</span>)
+
+<span class="cc"># Get all budgets</span>
+all_budgets = enforcer.<span class="cf">get_status</span>()</code></pre>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Cache TTL</div>
+      <p>The enforcer caches budget state for 60 seconds by default. This means enforcement can lag by up to 60 seconds. Adjust with <code>BudgetEnforcer(dsn=..., cache_ttl=30.0)</code>.</p>
+    </div>
+
+    <h2 class="doc-h2">Budget periods</h2>
+    <table>
+      <tr><th>Period</th><th>Resets</th></tr>
+      <tr><td><code>daily</code></td><td>Midnight UTC each day</td></tr>
+      <tr><td><code>weekly</code></td><td>Monday midnight UTC</td></tr>
+      <tr><td><code>monthly</code></td><td>1st of each month UTC</td></tr>
+    </table>
+
+    <h2 class="doc-h2">Grafana Budget Dashboard</h2>
+    <p>The <strong>Kostrack — Budgets</strong> dashboard shows spend vs limits for all configured budgets, a daily trend per project, and highlights any projects over their alert threshold.</p>
+
+    <div class="prev-next">
+      <a href="/docs/queries.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Useful Queries</div></a>
+      <a href="/docs/pricing-sync.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Pricing Sync</div></a>
+    </div>
+  </main>
+</div>
+<script src="/assets/nav.js"></script>
+<script>renderSidebar('budgets');</script>
+</body>
+</html>

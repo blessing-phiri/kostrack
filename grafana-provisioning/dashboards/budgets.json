@@ -1,0 +1,294 @@
+{
+  "uid": "kostrack-budgets",
+  "title": "Kostrack \u2014 Budgets",
+  "description": "Spend vs configured budget limits per project and team",
+  "tags": [
+    "kostrack"
+  ],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Budget Utilisation \u2014 This Month",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "limit_usd"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "spent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "remaining"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pct_used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "gradient-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 70
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "pct_used",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "\nSELECT\n  b.tag_key,\n  b.tag_value,\n  b.period,\n  b.limit_usd,\n  ROUND(COALESCE(SUM(c.cost_usd),0)::numeric,6) AS spent,\n  ROUND((b.limit_usd - COALESCE(SUM(c.cost_usd),0))::numeric,4) AS remaining,\n  ROUND((COALESCE(SUM(c.cost_usd),0) / NULLIF(b.limit_usd,0) * 100)::numeric,1) AS pct_used,\n  b.alert_threshold * 100 AS alert_at_pct,\n  b.enforce\nFROM budgets b\nLEFT JOIN llm_calls c\n  ON c.tags ->> b.tag_key = b.tag_value\n  AND c.time >= date_trunc('month', NOW())\nGROUP BY b.id, b.tag_key, b.tag_value, b.period, b.limit_usd, b.alert_threshold, b.enforce\nORDER BY pct_used DESC\n",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Daily Spend Trend \u2014 All Projects",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 6
+          }
+        }
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT time_bucket('1 day', time) AS time, tags->>'project' AS project, SUM(cost_usd) AS cost FROM llm_calls WHERE time > NOW() - INTERVAL '30 days' AND tags->>'project' IS NOT NULL GROUP BY 1, 2 ORDER BY 1",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Cumulative Spend This Month",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 16,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": {
+            "lineWidth": 2
+          }
+        }
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT time_bucket('1 day', time) AS time, tags->>'project' AS project, SUM(SUM(cost_usd)) OVER (PARTITION BY tags->>'project' ORDER BY time_bucket('1 day', time)) AS cumulative_cost FROM llm_calls WHERE time >= date_trunc('month', NOW()) AND tags->>'project' IS NOT NULL GROUP BY 1, 2 ORDER BY 1",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Projects Over Alert Threshold",
+      "type": "table",
+      "gridPos": {
+        "x": 16,
+        "y": 18,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "spent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pct_used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "yellow",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "\nSELECT b.tag_value AS project,\n  ROUND(COALESCE(SUM(c.cost_usd),0)::numeric,4) AS spent,\n  ROUND((COALESCE(SUM(c.cost_usd),0) / NULLIF(b.limit_usd,0) * 100)::numeric,1) AS pct_used,\n  b.enforce\nFROM budgets b\nLEFT JOIN llm_calls c ON c.tags->>'project' = b.tag_value\n  AND c.time >= date_trunc('month', NOW())\nWHERE b.tag_key = 'project' AND b.period = 'monthly'\nGROUP BY b.tag_value, b.limit_usd, b.enforce\nHAVING COALESCE(SUM(c.cost_usd),0) / NULLIF(b.limit_usd,0) >= b.alert_threshold\nORDER BY pct_used DESC\n",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 1
+}

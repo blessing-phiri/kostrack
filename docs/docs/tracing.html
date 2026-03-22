@@ -51,6 +51,20 @@ client = <span class="cf">Anthropic</span>(tags={<span class="cs">"project"</spa
 
 <span class="cc"># root.total_cost_usd = sum of all three spans</span></code></pre>
 
+<h2 class="doc-h2">Multi-model cost breakdown</h2>
+<p>When a trace spans multiple providers or models, <code>cost_breakdown()</code> returns per-model attribution sorted by spend:</p>
+<pre><code><span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">trace</span>(tags={<span class="cs">"feature"</span>: <span class="cs">"month-end-close"</span>}) <span class="ck">as</span> t:
+    <span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">span</span>(<span class="cs">"reason"</span>, parent=t):
+        deepseek.chat.completions.<span class="cf">create</span>(model=<span class="cs">"deepseek-reasoner"</span>, ...)
+    <span class="ck">with</span> <span class="ca">kostrack</span>.<span class="cf">span</span>(<span class="cs">"extract"</span>, parent=t):
+        anthropic.messages.<span class="cf">create</span>(model=<span class="cs">"claude-haiku-4-5-20251001"</span>, ...)
+
+<span class="cf">print</span>(<span class="cs">f"Total: ${t.total_cost_usd:.6f} across {t.call_count} calls"</span>)
+<span class="ck">for</span> item <span class="ck">in</span> t.<span class="cf">cost_breakdown</span>():
+    <span class="cf">print</span>(<span class="cs">f"  {item['model']}: ${item['cost_usd']:.6f} ({item['pct']}%)"</span>)
+<span class="cc"># deepseek-reasoner:          $0.0142  (78.9%)</span>
+<span class="cc"># claude-haiku-4-5-20251001:  $0.0038  (21.1%)</span></code></pre>
+
 <h2 class="doc-h2">Schema</h2>
 <table>
   <tr><th>Column</th><th>Description</th></tr>
@@ -78,7 +92,7 @@ ORDER BY time;</code></pre>
   <p>Wrap your LangGraph <code>graph.invoke()</code> call inside a <code>kostrack.trace()</code> block. Every LLM node in the graph will automatically inherit the trace ID.</p>
 </div>
 
-    <div class="prev-next"><a href="/docs/gemini.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Gemini</div></a><a href="/docs/tags.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Attribution Tags</div></a></div>
+    <div class="prev-next"><a href="/docs/deepseek.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">DeepSeek</div></a><a href="/docs/tags.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Attribution Tags</div></a></div>
   </main>
 </div>
 <script src="/assets/nav.js"></script>

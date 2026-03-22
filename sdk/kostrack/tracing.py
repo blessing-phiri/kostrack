@@ -118,7 +118,13 @@ def span(
     finally:
         _pop_trace()
         if active:
-            active.record_call(ctx.total_cost_usd)  # roll up to parent
+            # Roll up total cost and per-model breakdown to the parent trace.
+            # Incrementing call_count by 1 here represents the span as a unit;
+            # individual call counts are already tracked on the child ctx.
+            active.total_cost_usd += ctx.total_cost_usd
+            active.call_count += ctx.call_count
+            for model, cost in ctx.model_costs.items():
+                active.model_costs[model] = active.model_costs.get(model, 0.0) + cost
         logger.debug(
             "Span complete — name=%s calls=%d cost=$%.6f",
             name,

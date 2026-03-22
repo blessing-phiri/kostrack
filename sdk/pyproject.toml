@@ -4,18 +4,31 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kostrack"
-version = "0.1.0"
-description = "AI API cost governance — track, attribute, and report LLM spend"
+version = "0.2.0"
+description = "AI API cost governance — track, attribute, and report LLM spend across Anthropic, OpenAI, and Gemini"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-keywords = ["llm", "cost", "observability", "finops", "anthropic", "openai", "gemini"]
+license = { file = "LICENSE" }
+authors = [
+    { name = "Blessing Phiri", email = "blessing@initdatasolutions.com" }
+]
+keywords = [
+    "llm", "cost", "observability", "finops", "anthropic", "openai",
+    "gemini", "langchain", "langgraph", "agentic", "governance"
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: System :: Monitoring",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -32,14 +45,42 @@ dev = [
     "pytest-mock>=3.14",
     "ruff>=0.4",
     "mypy>=1.10",
+    "hatch>=1.9",
+    "twine>=5.0",
 ]
+
+[project.urls]
+Homepage      = "https://kostrack.netlify.app"
+Documentation = "https://kostrack.netlify.app/docs/"
+Repository    = "https://github.com/blessing-phiri/kostrack"
+"Bug Tracker" = "https://github.com/blessing-phiri/kostrack/issues"
+Changelog     = "https://github.com/blessing-phiri/kostrack/releases"
+
+[project.scripts]
+kostrack = "kostrack.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["kostrack"]
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "kostrack/",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
 
 [tool.mypy]
 python_version = "3.11"

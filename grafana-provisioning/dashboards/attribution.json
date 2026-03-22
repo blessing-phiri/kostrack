@@ -1,0 +1,573 @@
+{
+  "uid": "kostrack-attribution",
+  "title": "Kostrack \u2014 Attribution",
+  "description": "Spend by project, feature, team, user and environment",
+  "tags": [
+    "kostrack"
+  ],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "graphTooltip": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "datasource": {
+          "uid": "kostrack-tsdb"
+        },
+        "query": "SELECT DISTINCT tags->>'project' FROM llm_calls WHERE tags->>'project' IS NOT NULL ORDER BY 1",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 2
+      },
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "uid": "kostrack-tsdb"
+        },
+        "query": "SELECT DISTINCT tags->>'environment' FROM llm_calls WHERE tags->>'environment' IS NOT NULL ORDER BY 1",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total Spend \u2014 Selected Period",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT $__timeFrom() AS time, SUM(cost_usd) AS value FROM llm_calls WHERE $__timeFilter(time)",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Unique Projects",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT $__timeFrom() AS time, COUNT(DISTINCT tags->>'project') AS value FROM llm_calls WHERE $__timeFilter(time) AND tags->>'project' IS NOT NULL",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Unique Features",
+      "type": "stat",
+      "gridPos": {
+        "x": 10,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT $__timeFrom() AS time, COUNT(DISTINCT tags->>'feature') AS value FROM llm_calls WHERE $__timeFilter(time) AND tags->>'feature' IS NOT NULL",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "API Calls",
+      "type": "stat",
+      "gridPos": {
+        "x": 14,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT $__timeFrom() AS time, COUNT(*) AS value FROM llm_calls WHERE $__timeFilter(time)",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Avg Cost/Call",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT $__timeFrom() AS time, AVG(cost_usd) AS value FROM llm_calls WHERE $__timeFilter(time)",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Spend by Project",
+      "type": "barchart",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT tags->>'project' AS project, SUM(cost_usd) AS spend FROM llm_calls WHERE $__timeFilter(time) AND tags->>'project' IS NOT NULL GROUP BY 1 ORDER BY spend DESC LIMIT 15",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Spend by Feature",
+      "type": "barchart",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT tags->>'feature' AS feature, SUM(cost_usd) AS spend FROM llm_calls WHERE $__timeFilter(time) AND tags->>'feature' IS NOT NULL GROUP BY 1 ORDER BY spend DESC LIMIT 15",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Spend Over Time by Project",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8
+          }
+        }
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum",
+            "mean"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT time_bucket('1 hour', time) AS time, tags->>'project' AS project, SUM(cost_usd) AS cost FROM llm_calls WHERE $__timeFilter(time) AND tags->>'project' IS NOT NULL GROUP BY 1, 2 ORDER BY 1",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Spend by Team",
+      "type": "piechart",
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "pieType": "donut",
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "values": [
+            "value",
+            "percent"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT tags->>'team' AS metric, SUM(cost_usd) AS value FROM llm_calls WHERE $__timeFilter(time) AND tags->>'team' IS NOT NULL GROUP BY 1 ORDER BY value DESC",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Spend by Environment",
+      "type": "piechart",
+      "gridPos": {
+        "x": 8,
+        "y": 21,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "pieType": "donut",
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "values": [
+            "value",
+            "percent"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT tags->>'environment' AS metric, SUM(cost_usd) AS value FROM llm_calls WHERE $__timeFilter(time) AND tags->>'environment' IS NOT NULL GROUP BY 1 ORDER BY value DESC",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Top Users by Spend",
+      "type": "barchart",
+      "gridPos": {
+        "x": 16,
+        "y": 21,
+        "w": 8,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT tags->>'user_id' AS user_id, SUM(cost_usd) AS spend FROM llm_calls WHERE $__timeFilter(time) AND tags->>'user_id' IS NOT NULL GROUP BY 1 ORDER BY spend DESC LIMIT 10",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Attribution Detail",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 24,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "spend"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 6
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_cost"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 6
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "spend",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "kostrack-tsdb"
+          },
+          "rawSql": "SELECT tags->>'project' AS project, tags->>'feature' AS feature, tags->>'team' AS team, tags->>'environment' AS env, COUNT(*) AS calls, SUM(cost_usd) AS spend, AVG(cost_usd) AS avg_cost, SUM(input_tokens) AS input_tokens, SUM(output_tokens) AS output_tokens FROM llm_calls WHERE $__timeFilter(time) GROUP BY 1,2,3,4 ORDER BY spend DESC LIMIT 100",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 1
+}

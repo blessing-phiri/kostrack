@@ -42,29 +42,35 @@ function renderNav(activePage = '') {
 function renderSidebar(activePage = '') {
   const nav = [
     { label: 'Getting Started', links: [
-      { href: '/docs/',                     title: 'Introduction',    id: 'intro' },
-      { href: '/docs/quickstart.html',      title: 'Quick Start',     id: 'quickstart' },
-      { href: '/docs/installation.html',    title: 'Installation',    id: 'installation' },
-    ]},
-    { label: 'Configuration', links: [
-      { href: '/docs/configure.html',       title: 'configure()',     id: 'configure' },
-      { href: '/docs/environment.html',     title: 'Environment Vars',id: 'environment' },
-      { href: '/docs/docker.html',          title: 'Docker Setup',    id: 'docker' },
+      { href: '/docs/',                     title: 'Introduction',      id: 'intro' },
+      { href: '/docs/quickstart.html',      title: 'Quick Start',       id: 'quickstart' },
+      { href: '/docs/docker.html',          title: 'Docker Setup',      id: 'docker' },
+      { href: '/docs/environment.html',     title: 'Environment Vars',  id: 'environment' },
     ]},
     { label: 'SDK Reference', links: [
-      { href: '/docs/anthropic.html',       title: 'Anthropic',       id: 'anthropic' },
-      { href: '/docs/openai.html',          title: 'OpenAI',          id: 'openai' },
-      { href: '/docs/gemini.html',          title: 'Gemini',          id: 'gemini' },
-      { href: '/docs/tracing.html',         title: 'Tracing & Spans', id: 'tracing' },
-      { href: '/docs/tags.html',            title: 'Attribution Tags', id: 'tags' },
+      { href: '/docs/configure.html',       title: 'configure()',        id: 'configure' },
+      { href: '/docs/anthropic.html',       title: 'Anthropic',          id: 'anthropic' },
+      { href: '/docs/openai.html',          title: 'OpenAI',             id: 'openai' },
+      { href: '/docs/gemini.html',          title: 'Gemini',             id: 'gemini' },
+      { href: '/docs/deepseek.html',        title: 'DeepSeek',           id: 'deepseek' },
+      { href: '/docs/tracing.html',         title: 'Tracing & Spans',    id: 'tracing' },
+      { href: '/docs/tags.html',            title: 'Attribution Tags',   id: 'tags' },
     ]},
-    { label: 'Dashboard', links: [
-      { href: '/docs/grafana.html',         title: 'Grafana Overview', id: 'grafana' },
-      { href: '/docs/queries.html',         title: 'Useful Queries',   id: 'queries' },
+    { label: 'Governance', links: [
+      { href: '/docs/budgets.html',         title: 'Budget Enforcement', id: 'budgets' },
+      { href: '/docs/pricing-sync.html',    title: 'Pricing Sync',       id: 'pricing-sync' },
+    ]},
+    { label: 'Platform', links: [
+      { href: '/docs/platform-api.html',    title: 'Platform API',       id: 'platform-api' },
+      { href: '/docs/cli.html',             title: 'CLI Reference',      id: 'cli' },
+    ]},
+    { label: 'Dashboard & Queries', links: [
+      { href: '/docs/grafana.html',         title: 'Grafana Overview',   id: 'grafana' },
+      { href: '/docs/queries.html',         title: 'Useful Queries',     id: 'queries' },
     ]},
     { label: 'Integrations', links: [
-      { href: '/docs/fastapi.html',         title: 'FastAPI',          id: 'fastapi' },
-      { href: '/docs/langgraph.html',       title: 'LangGraph',        id: 'langgraph' },
+      { href: '/docs/fastapi.html',         title: 'FastAPI',            id: 'fastapi' },
+      { href: '/docs/langgraph.html',       title: 'LangGraph',          id: 'langgraph' },
     ]},
   ];
 

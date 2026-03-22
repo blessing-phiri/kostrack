@@ -44,16 +44,20 @@ from typing import Any
 
 from kostrack.writers.batch_writer import AsyncBatchWriter
 from kostrack.calculators.pricing_engine import PricingEngine
+from kostrack.providers.deepseek_provider import DeepSeek
 from kostrack.providers.anthropic_provider import Anthropic
 from kostrack.providers.openai_provider import OpenAI
 from kostrack.providers.gemini_provider import GenerativeModel
 import kostrack.providers.anthropic_provider as _anthropic_provider
 import kostrack.providers.openai_provider as _openai_provider
 import kostrack.providers.gemini_provider as _gemini_provider
+import kostrack.providers.deepseek_provider as _deepseek_provider
 from kostrack.tracing import trace, span, get_active_trace
 from kostrack.models import TraceContext, CallRecord, TokenBreakdown
+from kostrack.sync.pricing_sync import PricingSync
+from kostrack.budget import BudgetEnforcer, BudgetExceededError
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "configure",
     "shutdown",
@@ -61,18 +65,24 @@ __all__ = [
     "Anthropic",
     "OpenAI",
     "GenerativeModel",
+    "DeepSeek",
     "trace",
     "span",
     "get_active_trace",
     "TraceContext",
     "CallRecord",
     "TokenBreakdown",
+    "PricingSync",
+    "BudgetEnforcer",
+    "BudgetExceededError",
+    "budget_enforcer",
 ]
 
 logger = logging.getLogger("kostrack")
 
 _writer: AsyncBatchWriter | None = None
 _pricing: PricingEngine | None = None
+_budget_enforcer: BudgetEnforcer | None = None
 
 
 def configure(
@@ -84,6 +94,8 @@ def configure(
     sqlite_path: Path | None = None,
     fail_open: bool = True,
     log_level: str = "WARNING",
+    sync_pricing: bool = True,
+    budget_dsn: str | None = None,
 ) -> None:
     """
     Initialise kostrack. Call once at application startup.
@@ -126,15 +138,34 @@ def configure(
         fail_open=fail_open,
     )
 
-    # Inject into all three provider modules
+    # Inject into all four provider modules
     _anthropic_provider._global_writer = _writer
     _anthropic_provider._global_pricing = _pricing
     _openai_provider._global_writer = _writer
     _openai_provider._global_pricing = _pricing
     _gemini_provider._global_writer = _writer
     _gemini_provider._global_pricing = _pricing
+    _deepseek_provider._global_writer = _writer
+    _deepseek_provider._global_pricing = _pricing
+
+    # Start pricing sync in background
+    if sync_pricing:
+        from kostrack.sync.pricing_sync import PricingSync as _PS
+        _ps = _PS(dsn=resolved_dsn)
+        _ps.start_background(interval_hours=24)
+
+    # Initialise budget enforcer if requested
+    global _budget_enforcer
+    _budget_enforcer = BudgetEnforcer(dsn=budget_dsn or resolved_dsn)
 
     logger.info("kostrack configured — service_id=%s version=%s", service_id, __version__)
+
+
+def budget_enforcer() -> "BudgetEnforcer":
+    """Return the global BudgetEnforcer instance after configure() is called."""
+    if _budget_enforcer is None:
+        raise RuntimeError("kostrack not configured. Call kostrack.configure() first.")
+    return _budget_enforcer
 
 
 def health() -> dict[str, Any]:

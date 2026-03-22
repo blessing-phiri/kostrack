@@ -41,6 +41,9 @@ _BUNDLED_PRICING: list[dict[str, Any]] = [
     {"provider": "openai", "model": "gpt-4o-mini", "pricing_model": "per_token", "input_rate": 0.15/1e6,  "output_rate": 0.60/1e6,  "cache_write_rate": None, "cache_read_rate": 0.075/1e6},
     {"provider": "openai", "model": "o1",          "pricing_model": "per_token", "input_rate": 15.00/1e6, "output_rate": 60.00/1e6, "cache_write_rate": None, "cache_read_rate": 7.50/1e6},
     {"provider": "openai", "model": "o3-mini",     "pricing_model": "per_token", "input_rate": 1.10/1e6,  "output_rate": 4.40/1e6,  "cache_write_rate": None, "cache_read_rate": 0.55/1e6},
+    # DeepSeek
+    {"provider": "deepseek", "model": "deepseek-chat",      "pricing_model": "per_token", "input_rate": 0.27/1e6,  "output_rate": 1.10/1e6, "cache_write_rate": None, "cache_read_rate": 0.07/1e6},
+    {"provider": "deepseek", "model": "deepseek-reasoner",  "pricing_model": "per_token", "input_rate": 0.55/1e6,  "output_rate": 2.19/1e6, "cache_write_rate": None, "cache_read_rate": 0.14/1e6},
     # Gemini
     {"provider": "gemini", "model": "gemini-2.0-flash",      "pricing_model": "per_token", "input_rate": 0.10/1e6,  "output_rate": 0.40/1e6, "cache_write_rate": None, "cache_read_rate": 0.025/1e6},
     {"provider": "gemini", "model": "gemini-2.0-flash-lite",  "pricing_model": "per_token", "input_rate": 0.075/1e6, "output_rate": 0.30/1e6, "cache_write_rate": None, "cache_read_rate": None},

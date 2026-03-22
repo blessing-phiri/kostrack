@@ -137,6 +137,10 @@ class TraceContext:
     """
     Active trace — holds IDs for the current workflow.
     Used by the context manager in kostrack.trace().
+
+    model_costs: per-model cost breakdown across all calls in this trace.
+    Useful for multi-model agentic workflows where you want to know
+    "how much did the R1 reasoning step cost vs the Claude extraction step".
     """
     trace_id: uuid.UUID = field(default_factory=uuid.uuid4)
     span_id: uuid.UUID = field(default_factory=uuid.uuid4)
@@ -144,8 +148,9 @@ class TraceContext:
     tags: dict[str, str] = field(default_factory=dict)
     total_cost_usd: float = 0.0
     call_count: int = 0
+    model_costs: dict[str, float] = field(default_factory=dict)
 
-    def child_span(self) -> TraceContext:
+    def child_span(self) -> "TraceContext":
         """Create a child span inheriting this trace's ID."""
         return TraceContext(
             trace_id=self.trace_id,
@@ -153,6 +158,33 @@ class TraceContext:
             tags=self.tags.copy(),
         )
 
-    def record_call(self, cost_usd: float) -> None:
+    def record_call(self, cost_usd: float, model: str = "") -> None:
         self.total_cost_usd += cost_usd
         self.call_count += 1
+        if model:
+            self.model_costs[model] = self.model_costs.get(model, 0.0) + cost_usd
+
+    def cost_breakdown(self) -> list[dict[str, Any]]:
+        """
+        Return per-model cost sorted by spend descending.
+
+        Example:
+            [
+                {"model": "deepseek-reasoner",  "cost_usd": 0.0142, "pct": 71.0},
+                {"model": "claude-sonnet-4-6",   "cost_usd": 0.0058, "pct": 29.0},
+            ]
+        """
+        if not self.model_costs or self.total_cost_usd == 0:
+            return []
+        return sorted(
+            [
+                {
+                    "model": model,
+                    "cost_usd": cost,
+                    "pct": round(cost / self.total_cost_usd * 100, 1),
+                }
+                for model, cost in self.model_costs.items()
+            ],
+            key=lambda x: x["cost_usd"],
+            reverse=True,
+        )

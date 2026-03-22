@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kostrack — AI API Cost Governance</title>
-<meta name="description" content="Track, attribute, and govern LLM API spend across Anthropic, OpenAI, and Gemini — with full agentic workflow cost rollup.">
+<meta name="description" content="Track, attribute, and govern LLM API spend across Anthropic, OpenAI, Gemini, and DeepSeek — with full agentic workflow cost rollup, budget enforcement, a CLI, and a REST Platform API.">
 <meta property="og:title" content="Kostrack — AI API Cost Governance">
-<meta property="og:description" content="One import change. Full cost visibility. Built for teams shipping AI in production.">
+<meta property="og:description" content="One import change. Full cost visibility. CLI, REST API, and budget enforcement built in.">
 <meta property="og:url" content="https://kostrack.netlify.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -179,7 +179,7 @@
   <div class="container hero-inner">
     <div class="hero-badge"><span class="badge-dot"></span>v0.1.0 · Open Source · Apache 2.0</div>
     <h1>Know what your<br>AI <em>actually</em> costs.</h1>
-    <p class="hero-sub">Instrument once. Attribute every LLM API call to a project, feature, or workflow — with full agentic cost rollup across Anthropic, OpenAI, and Gemini.</p>
+    <p class="hero-sub">Instrument once. Attribute every LLM API call to a project, feature, or workflow — with full agentic cost rollup across Anthropic, OpenAI, Gemini, and DeepSeek.</p>
     <div class="hero-actions">
       <a href="/docs/quickstart.html" class="btn-primary">Get started →</a>
       <a href="https://github.com/bphiri/kostrack" target="_blank" class="btn-ghost">View on GitHub</a>
@@ -195,7 +195,7 @@
 <!-- Stats -->
 <div class="stats-bar">
   <div class="stats-inner">
-    <div class="stat-item"><div class="stat-n">3<span> providers</span></div><div class="stat-d">Anthropic · OpenAI · Gemini</div></div>
+    <div class="stat-item"><div class="stat-n">4<span> providers</span></div><div class="stat-d">Anthropic · OpenAI · Gemini · DeepSeek</div></div>
     <div class="stat-item"><div class="stat-n">1<span> import</span></div><div class="stat-d">Zero API changes required</div></div>
     <div class="stat-item"><div class="stat-n">&lt;5<span>ms</span></div><div class="stat-d">Async write overhead per call</div></div>
     <div class="stat-item"><div class="stat-n">41<span> tests</span></div><div class="stat-d">Full coverage, 0 failures</div></div>
@@ -269,12 +269,13 @@ client = <span class="cf">Anthropic</span>(tags={
 <section class="providers" id="providers">
   <div class="container">
     <div class="eyebrow">Providers</div>
-    <h2 class="section-h2">All three. Day one.</h2>
-    <p class="section-sub">With correct per-provider token extraction — cache writes, reasoning tokens, context caching.</p>
+    <h2 class="section-h2">All four. Day one.</h2>
+    <p class="section-sub">With correct per-provider token extraction — cache writes, reasoning tokens, context caching, and DeepSeek-R1 thinking tokens.</p>
     <div class="provider-strip">
       <div class="provider-card"><div class="provider-name">Anthropic</div><div class="provider-models">claude-sonnet-4-6<br>claude-opus-4-6<br>claude-haiku-4-5<br>+ batch pricing</div><span class="provider-note">cache_write · cache_read · thinking</span></div>
       <div class="provider-card"><div class="provider-name">OpenAI</div><div class="provider-models">gpt-4o · gpt-4o-mini<br>o1 · o3-mini<br>+ batch pricing</div><span class="provider-note">cached_prompt · reasoning_tokens</span></div>
       <div class="provider-card"><div class="provider-name">Gemini</div><div class="provider-models">gemini-2.0-flash<br>gemini-2.0-flash-lite<br>gemini-1.5-pro · flash</div><span class="provider-note">context_cache · thoughts_tokens</span></div>
+      <div class="provider-card"><div class="provider-name">DeepSeek</div><div class="provider-models">deepseek-chat (V3)<br>deepseek-reasoner (R1)<br>OpenAI-compatible API</div><span class="provider-note">cache_hit · cache_miss · reasoning</span></div>
     </div>
   </div>
 </section>
