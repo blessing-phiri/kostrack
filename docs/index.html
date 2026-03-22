@@ -261,6 +261,8 @@ client = <span class="cf">Anthropic</span>(tags={
       <div class="feat"><div class="feat-icon">💰</div><div class="feat-title">Cache-aware pricing</div><div class="feat-desc">Anthropic cache write vs read. OpenAI cached prompts. Versioned pricing — historical accuracy after provider changes.</div><span class="feat-tag">Per-provider logic</span></div>
       <div class="feat"><div class="feat-icon">📊</div><div class="feat-title">Pre-built Grafana</div><div class="feat-desc"><code style="font-family:monospace;font-size:12px;">docker compose up</code> gives you TimescaleDB + Grafana with pre-provisioned dashboards. Zero configuration.</div><span class="feat-tag">Zero config</span></div>
       <div class="feat"><div class="feat-icon">🛡</div><div class="feat-title">Resilient by default</div><div class="feat-desc">Local SQLite buffer survives DB downtime and process restarts. Auto-flushes when connectivity returns.</div><span class="feat-tag">SQLite fallback</span></div>
+      <div class="feat"><div class="feat-icon">&#x2328;</div><div class="feat-title">CLI for operators</div><div class="feat-desc">Full spend governance from the terminal. Check budgets, view traces, set limits — no Python needed. Ships with <code style="font-family:monospace;font-size:12px;">pip install kostrack</code>.</div><span class="feat-tag">No code required</span></div>
+      <div class="feat"><div class="feat-icon">&#x1F310;</div><div class="feat-title">Platform REST API</div><div class="feat-desc">Language-agnostic governance on port 8080. Any tool that makes HTTP requests — Excel, Postman, Node, Go — can query spend and enforce budgets without the Python SDK.</div><span class="feat-tag">Any language</span></div>
     </div>
   </div>
 </section>
@@ -276,6 +278,35 @@ client = <span class="cf">Anthropic</span>(tags={
       <div class="provider-card"><div class="provider-name">OpenAI</div><div class="provider-models">gpt-4o · gpt-4o-mini<br>o1 · o3-mini<br>+ batch pricing</div><span class="provider-note">cached_prompt · reasoning_tokens</span></div>
       <div class="provider-card"><div class="provider-name">Gemini</div><div class="provider-models">gemini-2.0-flash<br>gemini-2.0-flash-lite<br>gemini-1.5-pro · flash</div><span class="provider-note">context_cache · thoughts_tokens</span></div>
       <div class="provider-card"><div class="provider-name">DeepSeek</div><div class="provider-models">deepseek-chat (V3)<br>deepseek-reasoner (R1)<br>OpenAI-compatible API</div><span class="provider-note">cache_hit · cache_miss · reasoning</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Audience -->
+<section style="background:var(--white);padding:96px 40px;">
+  <div class="container">
+    <div class="eyebrow">Who it&#39;s for</div>
+    <h2 class="section-h2">Built for the whole team.</h2>
+    <p class="section-sub">Not just the engineer who writes the code — every person who cares about AI spend has a workflow.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:48px;">
+      <div style="padding:32px;background:var(--fog);border-radius:12px;border:1px solid #DDE3EE;">
+        <div style="font-size:28px;margin-bottom:16px;">&#x1F469;&#x200D;&#x1F4BB;</div>
+        <div class="eyebrow" style="margin-bottom:8px;">Engineer</div>
+        <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:10px;">One import change</div>
+        <div style="font-size:14px;color:var(--slate);line-height:1.65;">Swap your provider import. Every call is automatically tracked, costed, and attributed. No extra code, no middleware, no proxy server.</div>
+      </div>
+      <div style="padding:32px;background:var(--fog);border-radius:12px;border:1px solid #DDE3EE;">
+        <div style="font-size:28px;margin-bottom:16px;">&#x1F5A5;</div>
+        <div class="eyebrow" style="margin-bottom:8px;">DevOps / Operator</div>
+        <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:10px;">CLI from the terminal</div>
+        <div style="font-size:14px;color:var(--slate);line-height:1.65;">Check spend, set budget limits, and inspect traces with the <code style="font-family:monospace;background:#E8ECF4;padding:1px 5px;border-radius:3px;">kostrack</code> command. No Python knowledge required beyond installation.</div>
+      </div>
+      <div style="padding:32px;background:var(--fog);border-radius:12px;border:1px solid #DDE3EE;">
+        <div style="font-size:28px;margin-bottom:16px;">&#x1F4CA;</div>
+        <div class="eyebrow" style="margin-bottom:8px;">Finance / Management</div>
+        <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:10px;">Dashboards and the API</div>
+        <div style="font-size:14px;color:var(--slate);line-height:1.65;">Open Grafana at <strong>localhost:3000</strong> and see spend by project, team, and feature — no code beyond initial setup. Or pull data into Excel or your BI tool via the REST API at <code style="font-family:monospace;background:#E8ECF4;padding:1px 5px;border-radius:3px;">:8080/spend</code>.</div>
+      </div>
     </div>
   </div>
 </section>

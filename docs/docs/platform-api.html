@@ -2,18 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Platform API — Kostrack Docs</title>
+<title>Platform API &mdash; Kostrack Docs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/docs.css">
 </head>
-<body>
-<nav class="nav">
+<body><nav class="nav">
   <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
   <ul class="nav-links">
     <li><a href="/docs/" class="active">Docs</a></li>
     <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
-    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI &rarr;</a></li>
   </ul>
 </nav>
 <div class="docs-layout">
@@ -21,118 +20,170 @@
   <main class="docs-content">
     <div class="doc-eyebrow">Platform</div>
     <h1 class="doc-h1">Platform API</h1>
-    <p class="doc-lead">A REST service that exposes all kostrack governance primitives over HTTP — so any language, team, or service can query spend, manage budgets, and enforce limits without the Python SDK.</p>
-    
+    <p class="doc-lead">A REST service that makes all kostrack data available over HTTP &mdash; so finance teams, operations, and non-Python services can query spend, manage budgets, and pull data into Excel or BI tools without writing any code.</p>
+<div class="callout callout-tip">
+  <div class="callout-title">Who this is for</div>
+  <p>The Platform API lets <strong>any tool or service query AI spend data and enforce budgets over HTTP</strong> &mdash; without installing Python or the kostrack SDK. This is how you connect Excel, Power BI, a Node.js service, or a simple browser query directly to your AI governance data.</p>
+</div>
+
 <h2 class="doc-h2">What it is</h2>
-<p>The Platform API is a thin FastAPI service that exposes all kostrack governance primitives over HTTP. It ships as a fourth container alongside TimescaleDB, Grafana, and the SDK — and starts automatically with <code>docker compose up -d</code>.</p>
-<p>Any service in any language can query spend, manage budgets, and enforce limits without installing the Python SDK. Node, Go, Ruby, bash — anything that can make an HTTP request.</p>
+<p>When you run <code>docker compose up -d</code>, a fourth container starts automatically alongside TimescaleDB, Grafana, and the SDK. It listens on port 8080 and exposes all governance data as a REST API &mdash; structured data you can read with any HTTP client.</p>
+<p>The interactive API explorer (Swagger UI) is always available at <strong>http://localhost:8080/docs</strong>. You can run queries directly from the browser, fill in fields, and see live responses &mdash; no code required.</p>
 
-<h2 class="doc-h2">Starting the stack</h2>
-<pre><code><span class="cc"># The API starts automatically with the full stack</span>
-docker compose up -d
+<h2 class="doc-h2">Checking it is running</h2>
+<pre><code><span class="cc"># In a browser, visit:</span>
+http://localhost:8080/health/live
 
-<span class="cc"># The API is available at http://localhost:8080</span>
-<span class="cc"># Interactive docs: http://localhost:8080/docs</span>
-curl http://localhost:8080/health/live</code></pre>
+<span class="cc"># You should see:</span>
+{"status": "ok", "service": "kostrack-api", "version": "0.2.0"}</code></pre>
 
 <h2 class="doc-h2">Authentication</h2>
-<p>Set <code>KOSTRACK_API_KEY</code> in your <code>.env</code> file to enable bearer token auth. Leave it blank for open access (appropriate for local or private network deployments).</p>
-<pre><code><span class="cc"># .env</span>
-KOSTRACK_API_KEY=your-secret-token
+<p>If your team has set a <code>KOSTRACK_API_KEY</code> in the server configuration, include it in every request as a bearer token. If no key is set (common for internal / local deployments), requests work without any authentication.</p>
+<pre><code><span class="cc"># Without auth (internal network, no key set)</span>
+curl http://localhost:8080/spend
 
-<span class="cc"># All requests (except /health/live)</span>
-curl -H <span class="cs">"Authorization: Bearer your-secret-token"</span> http://localhost:8080/spend</code></pre>
+<span class="cc"># With auth key</span>
+curl -H "Authorization: Bearer your-api-key" http://localhost:8080/spend</code></pre>
 
-<h2 class="doc-h2">Endpoints</h2>
-<table>
-  <tr><th>Method</th><th>Path</th><th>Description</th></tr>
-  <tr><td><code>GET</code></td><td><code>/health/live</code></td><td>Liveness probe — no auth, no DB required</td></tr>
-  <tr><td><code>GET</code></td><td><code>/health</code></td><td>Writer health for all connected services</td></tr>
-  <tr><td><code>GET</code></td><td><code>/spend</code></td><td>Spend by provider/model/project with filters</td></tr>
-  <tr><td><code>GET</code></td><td><code>/spend/trace/{trace_id}</code></td><td>Full per-model breakdown for one workflow trace</td></tr>
-  <tr><td><code>GET</code></td><td><code>/budgets</code></td><td>All budgets with live period spend and status</td></tr>
-  <tr><td><code>POST</code></td><td><code>/budgets</code></td><td>Create or update a budget</td></tr>
-  <tr><td><code>DELETE</code></td><td><code>/budgets/{id}</code></td><td>Delete a budget by numeric ID</td></tr>
-  <tr><td><code>POST</code></td><td><code>/budgets/check</code></td><td>Pre-call budget enforcement (returns 402 if exceeded)</td></tr>
-  <tr><td><code>GET</code></td><td><code>/models</code></td><td>All models seen with lifetime call count and cost</td></tr>
-  <tr><td><code>GET</code></td><td><code>/pricing</code></td><td>Active pricing for all known models</td></tr>
-  <tr><td><code>POST</code></td><td><code>/pricing/sync</code></td><td>Sync bundled pricing into TimescaleDB</td></tr>
-  <tr><td><code>POST</code></td><td><code>/pricing</code></td><td>Add or update pricing for a model</td></tr>
-</table>
+<h2 class="doc-h2">What you can query</h2>
 
-<h2 class="doc-h2">Budget enforcement — the key use case</h2>
-<p><code>POST /budgets/check</code> is designed for pre-call enforcement from any language. Send your tags before making an LLM call. Get back budget states. If a hard budget (<code>enforce: true</code>) is exceeded, the API returns <code>402 Payment Required</code> — your service should treat this as a signal to abort the call.</p>
-<pre><code><span class="cc"># Node.js example</span>
-const res = await fetch('http://kostrack:8080/budgets/check', {
+<h3 class="doc-h3">Spend data</h3>
+<p>Returns a breakdown of AI spending by provider, model, project, and day. All numbers are in USD.</p>
+<pre><code><span class="cc"># All spend, last 30 days</span>
+GET http://localhost:8080/spend
+
+<span class="cc"># Filter by project, last 7 days, by hour</span>
+GET http://localhost:8080/spend?project=openmanagr&days=7&granularity=hour
+
+<span class="cc"># Filter by provider</span>
+GET http://localhost:8080/spend?provider=anthropic&days=30</code></pre>
+
+<p>Example response:</p>
+<pre><code>{
+  "total_cost_usd": 1.1752,
+  "filters": { "days": 30, "project": "openmanagr" },
+  "rows": [
+    {
+      "bucket": "2026-03-22T00:00:00",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "project": "openmanagr",
+      "feature": "invoice-extraction",
+      "calls": 142,
+      "cost_usd": 0.8512
+    }
+  ]
+}</code></pre>
+
+<h3 class="doc-h3">Workflow trace cost breakdown</h3>
+<p>Returns the full cost breakdown for a single multi-step AI workflow run, split by which AI model was responsible for what percentage of the cost.</p>
+<pre><code>GET http://localhost:8080/spend/trace/11111111-1111-1111-1111-111111111111</code></pre>
+<pre><code>{
+  "trace_id": "11111111-...",
+  "total_cost_usd": 0.02,
+  "call_count": 3,
+  "model_breakdown": [
+    { "model": "deepseek-reasoner",  "cost_usd": 0.0142, "pct": 71.0 },
+    { "model": "claude-sonnet-4-6",  "cost_usd": 0.0058, "pct": 29.0 }
+  ]
+}</code></pre>
+
+<h3 class="doc-h3">Budgets</h3>
+<p>List all budgets with their current period spend and status.</p>
+<pre><code>GET http://localhost:8080/budgets</code></pre>
+<pre><code>{
+  "budgets": [
+    {
+      "tag_key": "project",
+      "tag_value": "openmanagr",
+      "period": "monthly",
+      "limit_usd": 50.0,
+      "spent_usd": 42.10,
+      "pct": 84.2,
+      "enforce": false,
+      "status": "alert"
+    }
+  ]
+}</code></pre>
+
+<p>Create a new budget:</p>
+<pre><code>POST http://localhost:8080/budgets
+Content-Type: application/json
+
+{
+  "tag_key": "project",
+  "tag_value": "openmanagr",
+  "period": "monthly",
+  "limit_usd": 50.0,
+  "alert_threshold": 0.80,
+  "enforce": true
+}</code></pre>
+
+<h3 class="doc-h3">Models</h3>
+<p>All AI models ever used, with total call count and lifetime spend.</p>
+<pre><code>GET http://localhost:8080/models</code></pre>
+
+<h3 class="doc-h3">Pricing</h3>
+<pre><code><span class="cc"># View current pricing for all models</span>
+GET http://localhost:8080/pricing
+
+<span class="cc"># Sync bundled pricing into the database</span>
+POST http://localhost:8080/pricing/sync</code></pre>
+
+<h2 class="doc-h2">Budget enforcement from any service</h2>
+<p>The <code>/budgets/check</code> endpoint is designed for pre-call enforcement from any language. Send your tags before making an AI call. Get back budget states. If a hard budget is exceeded, the API returns <strong>402 Payment Required</strong> &mdash; your service treats this as a signal to stop the call.</p>
+<pre><code>POST http://localhost:8080/budgets/check
+Content-Type: application/json
+
+{
+  "tags": { "project": "openmanagr", "team": "engineering" },
+  "estimated_cost": 0.01
+}
+
+<span class="cc"># Returns 200 if under budget (with any warnings)</span>
+<span class="cc"># Returns 402 if a hard-limit budget is exceeded</span></code></pre>
+
+<p>In Node.js:</p>
+<pre><code>const res = await fetch('http://kostrack:8080/budgets/check', {
   method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ' + process.env.KOSTRACK_API_KEY,
-  },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    tags: { project: 'openmanagr', team: 'engineering' },
+    tags: { project: 'openmanagr' },
     estimated_cost: 0.01,
   }),
 });
 
 if (res.status === 402) {
-  const detail = await res.json();
-  throw new Error(`Budget exceeded: ${detail.detail.tag_value} ${detail.detail.period}`);
+  throw new Error('Budget exceeded — AI call blocked');
 }
+<span class="cc">// Proceed with AI call</span></code></pre>
 
-<span class="cc"># Proceed with LLM call only if 200</span>
-const response = await anthropic.messages.create(...);</code></pre>
+<h2 class="doc-h2">Using with Excel or Power BI</h2>
+<p>From Excel, use <strong>Data &rarr; Get Data &rarr; From Web</strong> and enter:</p>
+<pre><code>http://localhost:8080/spend?days=30</code></pre>
+<p>Excel will load the JSON response and let you transform it into a table. You can set it to refresh on a schedule so your spend report is always current without anyone exporting a CSV.</p>
 
-<h2 class="doc-h2">Response examples</h2>
-<h3 class="doc-h3">GET /spend</h3>
-<pre><code>{
-  <span class="cs">"total_cost_usd"</span>: 1.1752,
-  <span class="cs">"filters"</span>: { <span class="cs">"days"</span>: 30, <span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>, <span class="cs">"granularity"</span>: <span class="cs">"day"</span> },
-  <span class="cs">"rows"</span>: [
-    {
-      <span class="cs">"bucket"</span>: <span class="cs">"2026-03-22T00:00:00"</span>,
-      <span class="cs">"provider"</span>: <span class="cs">"anthropic"</span>,
-      <span class="cs">"model"</span>: <span class="cs">"claude-sonnet-4-6"</span>,
-      <span class="cs">"project"</span>: <span class="cs">"openmanagr"</span>,
-      <span class="cs">"calls"</span>: 142,
-      <span class="cs">"cost_usd"</span>: 0.8512
-    }
-  ]
-}</code></pre>
+<h2 class="doc-h2">Complete endpoint reference</h2>
+<table>
+  <tr><th>Method</th><th>Path</th><th>What it returns</th></tr>
+  <tr><td><code>GET</code></td><td><code>/health/live</code></td><td>Liveness check &mdash; no auth required</td></tr>
+  <tr><td><code>GET</code></td><td><code>/health</code></td><td>Writer health for all connected services</td></tr>
+  <tr><td><code>GET</code></td><td><code>/spend</code></td><td>Spend by provider / model / project</td></tr>
+  <tr><td><code>GET</code></td><td><code>/spend/trace/{id}</code></td><td>Per-model cost breakdown for one workflow run</td></tr>
+  <tr><td><code>GET</code></td><td><code>/budgets</code></td><td>All budgets with live period spend</td></tr>
+  <tr><td><code>POST</code></td><td><code>/budgets</code></td><td>Create or update a budget</td></tr>
+  <tr><td><code>DELETE</code></td><td><code>/budgets/{id}</code></td><td>Delete a budget</td></tr>
+  <tr><td><code>POST</code></td><td><code>/budgets/check</code></td><td>Pre-call enforcement &mdash; 402 if exceeded</td></tr>
+  <tr><td><code>GET</code></td><td><code>/models</code></td><td>All models with lifetime stats</td></tr>
+  <tr><td><code>GET</code></td><td><code>/pricing</code></td><td>Active pricing for all models</td></tr>
+  <tr><td><code>POST</code></td><td><code>/pricing/sync</code></td><td>Sync bundled pricing to database</td></tr>
+</table>
 
-<h3 class="doc-h3">GET /spend/trace/{trace_id}</h3>
-<pre><code>{
-  <span class="cs">"trace_id"</span>: <span class="cs">"11111111-..."</span>,
-  <span class="cs">"total_cost_usd"</span>: 0.02,
-  <span class="cs">"call_count"</span>: 3,
-  <span class="cs">"model_breakdown"</span>: [
-    { <span class="cs">"model"</span>: <span class="cs">"deepseek-reasoner"</span>,  <span class="cs">"cost_usd"</span>: 0.0142, <span class="cs">"pct"</span>: 71.0 },
-    { <span class="cs">"model"</span>: <span class="cs">"claude-sonnet-4-6"</span>, <span class="cs">"cost_usd"</span>: 0.0058, <span class="cs">"pct"</span>: 29.0 }
-  ],
-  <span class="cs">"spans"</span>: [...]
-}</code></pre>
-
-<h3 class="doc-h3">POST /budgets/check — 402 response</h3>
-<pre><code>HTTP/1.1 402 Payment Required
-{
-  <span class="cs">"detail"</span>: {
-    <span class="cs">"error"</span>: <span class="cs">"budget_exceeded"</span>,
-    <span class="cs">"tag_key"</span>: <span class="cs">"project"</span>,
-    <span class="cs">"tag_value"</span>: <span class="cs">"openmanagr"</span>,
-    <span class="cs">"period"</span>: <span class="cs">"monthly"</span>,
-    <span class="cs">"spent_usd"</span>: 51.23,
-    <span class="cs">"limit_usd"</span>: 50.0
-  }
-}</code></pre>
-
-<h2 class="doc-h2">OpenAPI docs</h2>
-<p>The full OpenAPI schema is available at <code>http://localhost:8080/docs</code> (Swagger UI) or <code>http://localhost:8080/redoc</code>. Every endpoint, parameter, and response model is documented there — useful for team onboarding and generating client SDKs.</p>
-
-<div class="callout callout-tip">
-  <div class="callout-title">Production deployment</div>
-  <p>For production, place the API behind a reverse proxy (nginx or Caddy) and set <code>KOSTRACK_API_KEY</code> to a strong secret. The API container does not handle TLS — terminate SSL at the proxy layer.</p>
+<div class="callout callout-info">
+  <div class="callout-title">Interactive API explorer</div>
+  <p>The full API with live request / response forms is always available at <strong>http://localhost:8080/docs</strong>. You can try every endpoint directly in the browser, see the exact request format, and read the response &mdash; no code or curl required.</p>
 </div>
-    <div class="prev-next"><a href="/docs/cli.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">CLI Reference</div></a><a href="/docs/grafana.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Grafana Overview</div></a></div>
+    <div class="prev-next"><a href="/docs/cli.html" class="pn-card"><div class="pn-dir">&larr; Previous</div><div class="pn-title">CLI Reference</div></a><a href="/docs/grafana.html" class="pn-card next"><div class="pn-dir">Next &rarr;</div><div class="pn-title">Grafana Overview</div></a></div>
   </main>
 </div>
 <script src="/assets/nav.js"></script>

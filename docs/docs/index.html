@@ -35,7 +35,7 @@
   <main class="docs-content">
     <div class="doc-eyebrow">Getting Started</div>
     <h1 class="doc-h1">Introduction</h1>
-    <p class="doc-lead">Kostrack is an AI API cost governance layer for Python applications. It tracks, attributes, and reports every LLM API call — by project, feature, user, and workflow — without changing how you use the provider SDKs.</p>
+    <p class="doc-lead">Kostrack is an AI API cost governance platform. It tracks, attributes, and governs every LLM API call — by project, feature, user, and workflow — and gives every person on the team a way to see and control what AI spend is going where.</p>
 
     <h2 class="doc-h2">What problem does it solve?</h2>
     <p>Once you ship AI features to production, a question becomes urgent fast: <em>where is the API spend going?</em> Your Anthropic dashboard shows total token spend. It doesn't tell you which feature costs the most, which agent workflow is the most expensive to run, or which team is over budget.</p>
@@ -60,6 +60,9 @@ Grafana dashboards</code></pre>
     <p>The write path is non-blocking. A background thread batches records and writes them every 5 seconds. If TimescaleDB is unreachable, records buffer to a local SQLite file and flush automatically when connectivity returns. <strong>Your LLM calls are never delayed by Kostrack.</strong></p>
 
     <h2 class="doc-h2">Core concepts</h2>
+
+    <h3 class="doc-h3">Three ways to interact</h3>
+    <p><strong>Engineers</strong> instrument code using the Python SDK &mdash; one import change, everything else identical. <strong>Operators and DevOps teams</strong> govern spend from the terminal using the <code>kostrack</code> CLI &mdash; no Python knowledge needed beyond installation. <strong>Finance teams and managers</strong> query data through the Platform API at port 8080 or open Grafana at port 3000 directly in a browser. All three read from the same TimescaleDB instance.</p>
 
     <h3 class="doc-h3">Tags</h3>
     <p>Every API call carries a <code>tags</code> dict — arbitrary key-value pairs you define. Reserved keys (<code>project</code>, <code>feature</code>, <code>team</code>, <code>environment</code>, <code>user_id</code>) appear as dropdown filters in Grafana. All other keys are stored in a GIN-indexed JSONB column and available for custom queries.</p>

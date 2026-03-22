@@ -2,18 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CLI Reference — Kostrack Docs</title>
+<title>CLI Reference &mdash; Kostrack Docs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/docs.css">
 </head>
-<body>
-<nav class="nav">
+<body><nav class="nav">
   <a href="/" class="nav-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" style="width:26px;height:26px;"><defs><linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0D1B2E"/><stop offset="100%" stop-color="#152540"/></linearGradient><linearGradient id="ibar" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#2E5480"/></linearGradient><linearGradient id="iline" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5A623"/><stop offset="100%" stop-color="#E8891A"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#ibg)"/><rect x="8" y="42" width="9" height="12" rx="2" fill="url(#ibar)" opacity="0.45"/><rect x="20" y="34" width="9" height="20" rx="2" fill="url(#ibar)" opacity="0.65"/><rect x="32" y="24" width="9" height="30" rx="2" fill="url(#ibar)" opacity="0.85"/><rect x="44" y="14" width="9" height="40" rx="2" fill="url(#ibar)"/><polyline points="12.5,46 24.5,38 36.5,27 48.5,17" stroke="url(#iline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="48.5" cy="17" r="4" fill="#F5A623"/></svg><span class="nav-wordmark">kos<span>track</span></span></a>
   <ul class="nav-links">
     <li><a href="/docs/" class="active">Docs</a></li>
     <li><a href="https://github.com/bphiri/kostrack" target="_blank">GitHub</a></li>
-    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI →</a></li>
+    <li><a href="https://pypi.org/project/kostrack" target="_blank" class="nav-cta">PyPI &rarr;</a></li>
   </ul>
 </nav>
 <div class="docs-layout">
@@ -21,110 +20,115 @@
   <main class="docs-content">
     <div class="doc-eyebrow">Platform</div>
     <h1 class="doc-h1">CLI Reference</h1>
-    <p class="doc-lead">The kostrack command gives operators full cost governance from the terminal — no Python required. Check spend, manage budgets, sync pricing, and inspect traces without writing a line of code.</p>
-    
-<h2 class="doc-h2">Installation</h2>
-<p>The CLI is included with the SDK package. After <code>pip install kostrack</code>, the <code>kostrack</code> command is available globally:</p>
-<pre><code>pip install kostrack
-kostrack --help</code></pre>
-
-<h2 class="doc-h2">Authentication</h2>
-<p>All commands require a TimescaleDB connection. Set it once in your shell environment or pass it per-command:</p>
-<pre><code><span class="cc"># Set once</span>
-export KOSTRACK_DSN=postgresql://kostrack:password@localhost/kostrack
-
-<span class="cc"># Or pass per-command</span>
-kostrack status --dsn postgresql://kostrack:password@localhost/kostrack</code></pre>
-
-<div class="callout callout-info">
-  <div class="callout-title">Argument order</div>
-  <p><code>--dsn</code> must come after the subcommand name: <code>kostrack status --dsn ...</code>, not <code>kostrack --dsn ... status</code>. This follows standard argparse subparser conventions.</p>
+    <p class="doc-lead">Check spend, set budgets, and inspect AI usage from the terminal &mdash; no Python knowledge required. If a developer has installed kostrack, you can govern AI spend with simple commands.</p>
+<div class="callout callout-tip">
+  <div class="callout-title">Who this is for</div>
+  <p>You do not need to know Python to use the CLI. If you can open a terminal and type commands, you can check spend, set budget limits, and inspect AI usage for your whole team. A developer needs to install kostrack once — after that, this is yours.</p>
 </div>
 
-<h2 class="doc-h2">Commands</h2>
+<h2 class="doc-h2">Installation (one time, done by a developer)</h2>
+<p>The CLI is bundled with the Python SDK. After one installation command, the <code>kostrack</code> command works anywhere in the terminal:</p>
+<pre><code>pip install kostrack</code></pre>
+<p>Verify it worked:</p>
+<pre><code>kostrack --help</code></pre>
 
-<h3 class="doc-h3">kostrack status</h3>
-<p>24-hour spend summary grouped by provider. Good for a quick morning check.</p>
-<pre><code>kostrack status
-kostrack status --json</code></pre>
+<h2 class="doc-h2">Connecting to your data</h2>
+<p>The CLI reads from the same database that collects all the AI usage data. You need a connection string (DSN) — your developer can give you this. It looks like:</p>
+<pre><code>postgresql://kostrack:yourpassword@localhost/kostrack</code></pre>
+<p>Set it once in your terminal session so you never have to type it again:</p>
+<pre><code>export KOSTRACK_DSN=postgresql://kostrack:yourpassword@localhost/kostrack</code></pre>
+<p>Or pass it directly to any command:</p>
+<pre><code>kostrack status --dsn postgresql://kostrack:yourpassword@localhost/kostrack</code></pre>
+<div class="callout callout-warn">
+  <div class="callout-title">Argument order</div>
+  <p><code>--dsn</code> must come <strong>after</strong> the subcommand: <code>kostrack status --dsn ...</code> &mdash; not <code>kostrack --dsn ... status</code>.</p>
+</div>
 
-<h3 class="doc-h3">kostrack spend</h3>
-<p>Detailed spend breakdown by day, model, and project. Supports filters and a configurable lookback window.</p>
-<pre><code>kostrack spend
-kostrack spend --project openmanagr
-kostrack spend --project openmanagr --days 7
-kostrack spend --provider deepseek --days 30
-kostrack spend --json | jq '.[].cost_usd'</code></pre>
+<h2 class="doc-h2">Daily use — checking spend</h2>
 
-<h3 class="doc-h3">kostrack budgets</h3>
-<p>Show all configured budgets with live spend, a progress bar, and status (ok / alert / exceeded).</p>
-<pre><code>kostrack budgets
-kostrack budgets --json</code></pre>
+<h3 class="doc-h3">What did we spend in the last 24 hours?</h3>
+<pre><code>kostrack status</code></pre>
+<p>Shows a table of spend by provider (Anthropic, OpenAI, Gemini, DeepSeek) for the past 24 hours — call count, cost, and average response time.</p>
 
-<h3 class="doc-h3">kostrack budget set</h3>
-<p>Create or update a budget. Upserts on the combination of tag key + value + period.</p>
-<pre><code><span class="cc"># Soft budget — alert at 80%, never block</span>
+<h3 class="doc-h3">How much has a specific project spent this month?</h3>
+<pre><code>kostrack spend --project openmanagr --days 30</code></pre>
+<p>Replace <code>openmanagr</code> with your project name. The <code>--days</code> flag sets how far back to look.</p>
+
+<h3 class="doc-h3">Which AI models is the team using?</h3>
+<pre><code>kostrack models</code></pre>
+<p>Lists every AI model that has ever been used, with total call count and total cost — sorted by spend, most expensive first.</p>
+
+<h3 class="doc-h3">What did a specific workflow run cost?</h3>
+<pre><code>kostrack traces --project openmanagr</code></pre>
+<p>Shows recent multi-step AI workflow runs — each row is one workflow execution, with how many AI calls it made, how long it took, and what it cost in total.</p>
+
+<h2 class="doc-h2">Managing budgets</h2>
+<p>Budgets let you set spending limits on any project, team, or dimension. You can choose a <strong>soft limit</strong> (alert only) or a <strong>hard limit</strong> (blocks calls once exceeded).</p>
+
+<h3 class="doc-h3">See all current budgets and their status</h3>
+<pre><code>kostrack budgets</code></pre>
+<p>Shows each budget with a progress bar: how much has been spent, the limit, and whether it is on track, alerting, or exceeded.</p>
+
+<h3 class="doc-h3">Set a monthly budget for a project</h3>
+<pre><code><span class="cc"># Soft limit — get an alert at 80%, but calls are never blocked</span>
 kostrack budget set project openmanagr monthly 50.00
 
-<span class="cc"># Hard budget — raise BudgetExceededError at 100%</span>
+<span class="cc"># Hard limit — calls are blocked once $50 is reached</span>
 kostrack budget set project openmanagr monthly 50.00 --enforce
 
-<span class="cc"># Custom alert threshold</span>
-kostrack budget set team engineering monthly 200.00 --alert 0.70 --enforce</code></pre>
+<span class="cc"># Alert earlier — warn at 70% instead of 80%</span>
+kostrack budget set project openmanagr monthly 50.00 --alert 0.70</code></pre>
+
+<p>The four parts are: <strong>dimension</strong> (<code>project</code>), <strong>value</strong> (<code>openmanagr</code>), <strong>period</strong> (<code>monthly</code>), <strong>limit in USD</strong> (<code>50.00</code>). You can also budget by <code>team</code>, <code>feature</code>, or any tag your developers use.</p>
+
 <table>
-  <tr><th>Argument</th><th>Description</th></tr>
-  <tr><td><code>tag_key</code></td><td>Tag dimension to scope by, e.g. <code>project</code>, <code>team</code>, <code>user_id</code></td></tr>
-  <tr><td><code>tag_value</code></td><td>Value to match, e.g. <code>openmanagr</code></td></tr>
-  <tr><td><code>period</code></td><td><code>daily</code>, <code>weekly</code>, or <code>monthly</code></td></tr>
-  <tr><td><code>limit_usd</code></td><td>Budget cap in USD</td></tr>
-  <tr><td><code>--alert</code></td><td>Alert threshold 0–1 (default: 0.80)</td></tr>
-  <tr><td><code>--enforce</code></td><td>Hard limit — SDK raises <code>BudgetExceededError</code> at 100%</td></tr>
+  <tr><th>Period</th><th>Resets</th></tr>
+  <tr><td><code>daily</code></td><td>Every day at midnight UTC</td></tr>
+  <tr><td><code>weekly</code></td><td>Every Monday at midnight UTC</td></tr>
+  <tr><td><code>monthly</code></td><td>First day of each month</td></tr>
 </table>
 
-<h3 class="doc-h3">kostrack budget delete</h3>
+<h3 class="doc-h3">Remove a budget</h3>
 <pre><code>kostrack budget delete project openmanagr monthly</code></pre>
 
-<h3 class="doc-h3">kostrack pricing</h3>
-<p>Show the currently active pricing table — all providers, models, and rates.</p>
-<pre><code>kostrack pricing
-kostrack pricing --json</code></pre>
+<h2 class="doc-h2">Pricing</h2>
+<p>Kostrack tracks the cost of every AI call. These commands let you see and manage the pricing data it uses.</p>
 
-<h3 class="doc-h3">kostrack pricing sync</h3>
-<p>Push the bundled pricing table (current as of the installed SDK version) into TimescaleDB. Idempotent — skips entries that already have identical rates.</p>
+<h3 class="doc-h3">See current AI model prices</h3>
+<pre><code>kostrack pricing</code></pre>
+<p>Shows the price per million tokens for every model across all four providers, including cache and batch rates.</p>
+
+<h3 class="doc-h3">Update prices after a provider changes their rates</h3>
 <pre><code>kostrack pricing sync</code></pre>
+<p>Pushes the latest bundled prices into the database. Safe to run at any time — it skips entries that are already up to date.</p>
 
-<h3 class="doc-h3">kostrack pricing add</h3>
-<p>Add or update pricing for a model. Rates are in USD per million tokens. Creates a new versioned entry in the pricing table; previous rates are preserved with <code>effective_to</code> set.</p>
-<pre><code><span class="cc"># Add a new model</span>
-kostrack pricing add deepseek deepseek-v4 0.30 1.40
+<h2 class="doc-h2">System health</h2>
+<pre><code>kostrack health</code></pre>
+<p>Shows the status of each service that is writing data to kostrack — whether it is connected, how many records are queued, and when it last wrote successfully.</p>
 
-<span class="cc"># With cache read rate</span>
-kostrack pricing add deepseek deepseek-v4 0.30 1.40 --cache-read 0.07</code></pre>
+<h2 class="doc-h2">Getting data out as JSON</h2>
+<p>Every command supports a <code>--json</code> flag that outputs raw data instead of formatted tables. This is useful for piping into other tools or importing into a spreadsheet:</p>
+<pre><code><span class="cc"># Export last 30 days of spend to a file</span>
+kostrack spend --days 30 --json > spend.json
 
-<h3 class="doc-h3">kostrack models</h3>
-<p>All models ever seen across all services, sorted by total lifetime spend.</p>
-<pre><code>kostrack models
-kostrack models --json</code></pre>
+<span class="cc"># Export all budgets</span>
+kostrack budgets --json > budgets.json</code></pre>
 
-<h3 class="doc-h3">kostrack traces</h3>
-<p>Recent agentic workflow traces — each row is one workflow run with call count, duration, and total cost.</p>
-<pre><code>kostrack traces
-kostrack traces --project openmanagr --limit 50
-kostrack traces --json | jq '.[0]'</code></pre>
-
-<h3 class="doc-h3">kostrack health</h3>
-<p>Writer health for all services that have connected to this TimescaleDB instance.</p>
-<pre><code>kostrack health
-kostrack health --json</code></pre>
-
-<h2 class="doc-h2">Global flags</h2>
+<h2 class="doc-h2">Quick reference</h2>
 <table>
-  <tr><th>Flag</th><th>Description</th></tr>
-  <tr><td><code>--dsn</code></td><td>TimescaleDB DSN. Defaults to <code>$KOSTRACK_DSN</code>.</td></tr>
-  <tr><td><code>--json</code></td><td>Output raw JSON instead of formatted tables. Useful for scripting.</td></tr>
-  <tr><td><code>--service</code></td><td>Filter output by <code>service_id</code>.</td></tr>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>kostrack status</code></td><td>24-hour spend summary by provider</td></tr>
+  <tr><td><code>kostrack spend --project X --days N</code></td><td>Spend breakdown by day for a project</td></tr>
+  <tr><td><code>kostrack budgets</code></td><td>All budgets with live spend progress</td></tr>
+  <tr><td><code>kostrack budget set X Y monthly 50 --enforce</code></td><td>Set a hard monthly budget of $50</td></tr>
+  <tr><td><code>kostrack budget delete X Y monthly</code></td><td>Remove a budget</td></tr>
+  <tr><td><code>kostrack models</code></td><td>All models used, with lifetime cost</td></tr>
+  <tr><td><code>kostrack traces --project X</code></td><td>Recent workflow runs with cost per run</td></tr>
+  <tr><td><code>kostrack pricing</code></td><td>Current pricing for all models</td></tr>
+  <tr><td><code>kostrack pricing sync</code></td><td>Update pricing in the database</td></tr>
+  <tr><td><code>kostrack health</code></td><td>Writer health for all services</td></tr>
 </table>
-    <div class="prev-next"><a href="/docs/pricing-sync.html" class="pn-card"><div class="pn-dir">← Previous</div><div class="pn-title">Pricing Sync</div></a><a href="/docs/platform-api.html" class="pn-card next"><div class="pn-dir">Next →</div><div class="pn-title">Platform API</div></a></div>
+    <div class="prev-next"><a href="/docs/pricing-sync.html" class="pn-card"><div class="pn-dir">&larr; Previous</div><div class="pn-title">Pricing Sync</div></a><a href="/docs/platform-api.html" class="pn-card next"><div class="pn-dir">Next &rarr;</div><div class="pn-title">Platform API</div></a></div>
   </main>
 </div>
 <script src="/assets/nav.js"></script>

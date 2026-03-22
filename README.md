@@ -88,16 +88,16 @@ Wrap multi-step workflows to get total cost per run — attributed by model:
 import kostrack
 from kostrack import Anthropic, DeepSeek
 
-anthropicc = Anthropic(tags={"project": "openmanagr"})
-deepseek   = DeepSeek(tags={"project": "openmanagr"})
+anthropic = Anthropic(tags={"project": "openmanagr"})
+deepseek  = DeepSeek(tags={"project": "openmanagr"})
 
 with kostrack.trace(tags={"feature": "month-end-close"}) as t:
     with kostrack.span("reason", parent=t):
         deepseek.chat.completions.create(model="deepseek-reasoner", ...)
     with kostrack.span("extract", parent=t):
-        anthropiccc.messages.create(model="claude-haiku-4-5-20251001", ...)
+        anthropic.messages.create(model="claude-haiku-4-5-20251001", ...)
     with kostrack.span("post", parent=t):
-        anthropiccc.messages.create(model="claude-sonnet-4-6", ...)
+        anthropic.messages.create(model="claude-sonnet-4-6", ...)
 
 print(f"Workflow cost: ${t.total_cost_usd:.6f} across {t.call_count} calls")
 for item in t.cost_breakdown():
@@ -182,6 +182,61 @@ kostrack models                                    # all models, lifetime cost
 kostrack traces --project openmanagr               # recent workflow traces
 kostrack health                                    # writer health per service
 ```
+
+---
+
+## For non-developers — operations, finance, and team leads
+
+Kostrack ships a CLI and a REST API so you can govern AI spend **without writing any code**.
+
+### What you can do from the terminal
+
+Once a developer has installed kostrack and pointed it at your infrastructure, you can check and control spend entirely from the command line:
+
+```bash
+# See what was spent in the last 24 hours, by provider
+kostrack status --dsn $KOSTRACK_DSN
+
+# See daily spend for a specific project over the past month
+kostrack spend --project openmanagr --days 30
+
+# See all budget limits and how close each one is to its cap
+kostrack budgets
+
+# Set a monthly $50 spending cap on a project — hard block at the limit
+kostrack budget set project openmanagr monthly 50.00 --enforce
+
+# See which AI models your team has been using, with lifetime cost
+kostrack models
+
+# See recent multi-step AI workflow runs and what each cost
+kostrack traces --project openmanagr
+```
+
+### What you can do from a browser
+
+Open **http://localhost:3000** (Grafana) and you get four live dashboards:
+
+| Dashboard | What it shows |
+|-----------|--------------|
+| Overview | Total spend today / this week / this month. Spend by provider and model. |
+| Attribution | Which project, feature, and team is spending what. |
+| Budgets | Live gauges showing each budget's current usage vs limit. |
+| Agentic Workflows | Cost per workflow run, most expensive runs, model breakdown. |
+
+No login needed beyond the initial setup. No SQL. No code.
+
+### What you can do without any local setup (Platform API)
+
+If your IT team has deployed the Platform API, you can query spend data from any tool that can make an HTTP request — including Excel Power Query, Postman, or a simple browser:
+
+```
+GET http://your-kostrack-server:8080/spend?project=openmanagr&days=30
+GET http://your-kostrack-server:8080/budgets
+POST http://your-kostrack-server:8080/budgets  (create a new budget limit)
+```
+
+The interactive API explorer is at **http://your-kostrack-server:8080/docs** — you can run queries directly from the browser, no code required.
 
 ---
 
